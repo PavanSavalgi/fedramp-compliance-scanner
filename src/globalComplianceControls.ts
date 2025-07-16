@@ -186,14 +186,25 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /access_logging\s*=\s*false/i,
-                        message: 'Access logging must be enabled for HIPAA compliance',
-                        remediation: 'Enable comprehensive access logging for all PHI access'
+                        id: 'phi-environment-vars',
+                        pattern: /PATIENT_SSN\s*=|MEDICAL_ID\s*=/i,
+                        message: 'HIPAA Administrative Safeguards: PHI must not be stored in environment variables',
+                        remediation: 'Use secure secret management for PHI data',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /user_training\s*=\s*false/i,
-                        message: 'User training documentation required',
-                        remediation: 'Document user training programs for PHI handling'
+                        id: 'phi-access-logging',
+                        pattern: /LOG_PHI_ACCESS\s*=\s*["']disabled["']/i,
+                        message: 'HIPAA Administrative Safeguards: PHI access logging must be enabled',
+                        remediation: 'Enable comprehensive PHI access logging',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        id: 'cloudwatch-logs-disabled',
+                        pattern: /enabled_cloudwatch_logs_exports\s*=\s*\[\s*\]/i,
+                        message: 'HIPAA Administrative Safeguards: CloudWatch logs must be enabled for audit trails',
+                        remediation: 'Enable CloudWatch logs for database audit trails',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             },
@@ -206,9 +217,18 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /physical_access_controls\s*=\s*false/i,
-                        message: 'Physical access controls must be implemented',
-                        remediation: 'Implement physical access controls for systems containing PHI'
+                        id: 'public-phi-access',
+                        pattern: /publicly_accessible\s*=\s*true/i,
+                        message: 'HIPAA Physical Safeguards: PHI databases must not be publicly accessible',
+                        remediation: 'Disable public access to PHI databases',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        id: 'public-access-blocks',
+                        pattern: /block_public_acls\s*=\s*false/i,
+                        message: 'HIPAA Physical Safeguards: Block public access to PHI storage',
+                        remediation: 'Enable public access blocks for PHI storage buckets',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             },
@@ -221,14 +241,25 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /encryption_at_rest\s*=\s*false/i,
-                        message: 'Encryption at rest required for PHI',
-                        remediation: 'Enable encryption at rest for all PHI storage'
+                        id: 'storage-encryption',
+                        pattern: /storage_encrypted\s*=\s*false/i,
+                        message: 'HIPAA Technical Safeguards: PHI storage must be encrypted',
+                        remediation: 'Enable encryption for all PHI storage',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /audit_controls\s*=\s*false/i,
-                        message: 'Audit controls must be implemented',
-                        remediation: 'Implement audit controls to record PHI access and modifications'
+                        id: 'transit-encryption',
+                        pattern: /ENCRYPT_TRANSIT\s*=\s*["']false["']/i,
+                        message: 'HIPAA Technical Safeguards: PHI transmission must be encrypted',
+                        remediation: 'Enable encryption for PHI data in transit',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        id: 'backup-retention',
+                        pattern: /backup_retention_period\s*=\s*0/i,
+                        message: 'HIPAA Technical Safeguards: PHI backup retention must be configured',
+                        remediation: 'Configure appropriate backup retention for PHI',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             }
@@ -239,36 +270,59 @@ export class GlobalComplianceControls {
         return [
             {
                 id: 'DPDP-SEC-8',
-                title: 'Data Security',
-                description: 'Implement appropriate security safeguards for personal data',
+                title: 'Data Security and Cross-border Transfer',
+                description: 'Implement appropriate security safeguards for personal data and regulate cross-border transfers',
                 family: 'SECURITY',
                 standard: 'DPDP',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /data_encryption\s*=\s*false/i,
-                        message: 'Data encryption required under DPDP Act',
-                        remediation: 'Implement strong encryption for personal data protection'
+                        id: 'cross-border-transfer',
+                        pattern: /bucket\s*=\s*"indian-users-backup-us"/i,
+                        message: 'DPDP Act: Cross-border data transfer requires proper safeguards and consent',
+                        remediation: 'Implement proper data localization or obtain consent for cross-border transfers',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /access_controls\s*=\s*["']none["']/i,
-                        message: 'Access controls must be implemented for personal data',
-                        remediation: 'Implement role-based access controls for personal data'
+                        id: 'singapore-backup-violation',
+                        pattern: /arn:aws:s3:::backup-singapore/i,
+                        message: 'DPDP Act: International data storage requires compliance with DPDP regulations',
+                        remediation: 'Ensure international data storage complies with DPDP Act requirements',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             },
             {
-                id: 'DPDP-SEC-9',
-                title: 'Data Breach Notification',
-                description: 'Implement breach detection and notification mechanisms',
-                family: 'INCIDENT',
+                id: 'DPDP-SEC-11',
+                title: 'Consent Management',
+                description: 'Implement proper consent mechanisms for personal data processing',
+                family: 'CONSENT',
                 standard: 'DPDP',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /breach_detection\s*=\s*false/i,
-                        message: 'Breach detection mechanisms must be implemented',
-                        remediation: 'Implement automated breach detection and notification systems'
+                        id: 'consent-disabled',
+                        pattern: /CONSENT_REQUIRED\s*=\s*"false"/i,
+                        message: 'DPDP Act: Consent management must be implemented for personal data processing',
+                        remediation: 'Implement proper consent collection and management mechanisms',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+            {
+                id: 'DPDP-SEC-3',
+                title: 'Data Fiduciary Obligations',
+                description: 'Data fiduciaries must comply with DPDP Act obligations',
+                family: 'GOVERNANCE',
+                standard: 'DPDP',
+                severity: 'warning',
+                checks: [
+                    {
+                        id: 'data-fiduciary-registration',
+                        pattern: /function_name\s*=\s*"process-indian-user-data"/i,
+                        message: 'DPDP Act: Data fiduciaries processing Indian user data must comply with registration and obligations',
+                        remediation: 'Ensure proper data fiduciary registration and compliance with DPDP obligations',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             }
@@ -286,14 +340,18 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /firewall_rules\s*=\s*\[\s*\]/,
-                        message: 'Firewall rules must be configured for PCI DSS compliance',
-                        remediation: 'Configure appropriate firewall rules to protect cardholder data'
+                        id: 'overly-permissive-access',
+                        pattern: /"CidrIp":\s*"0\.0\.0\.0\/0"/,
+                        message: 'PCI-DSS Requirement 1: Overly permissive network access detected',
+                        remediation: 'Restrict network access to necessary IP ranges only',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
                     },
                     {
-                        pattern: /source_ranges\s*=\s*\[\s*["']0\.0\.0\.0\/0["']\s*\]/,
-                        message: 'Overly permissive firewall rules detected',
-                        remediation: 'Restrict firewall rules to necessary IP ranges only'
+                        id: 'http-access-allowed',
+                        pattern: /"FromPort":\s*80[\s\S]*?"CidrIp":\s*"0\.0\.0\.0\/0"/,
+                        message: 'PCI-DSS Requirement 1: HTTP access should not be globally accessible',
+                        remediation: 'Use HTTPS only and restrict access to necessary networks',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
                     }
                 ]
             },
@@ -306,29 +364,59 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /storage_encryption\s*=\s*false/i,
-                        message: 'Storage encryption required for cardholder data',
-                        remediation: 'Enable strong encryption for all cardholder data storage'
+                        id: 'cardholder-data-environment',
+                        pattern: /"CREDIT_CARD_KEY":\s*"[\d-]+"/,
+                        message: 'PCI-DSS Requirement 3: Cardholder data must not be stored in environment variables',
+                        remediation: 'Use secure vault or tokenization for cardholder data',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
                     },
                     {
-                        pattern: /key_management\s*=\s*["']none["']/i,
-                        message: 'Proper key management required for PCI DSS',
-                        remediation: 'Implement secure key management practices'
+                        id: 'storage-encryption-disabled',
+                        pattern: /"StorageEncrypted":\s*false/,
+                        message: 'PCI-DSS Requirement 3: Storage encryption must be enabled for cardholder data',
+                        remediation: 'Enable storage encryption for all cardholder data systems',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
+                    },
+                    {
+                        id: 'pan-masking-disabled',
+                        pattern: /"MASK_PAN":\s*"false"/,
+                        message: 'PCI-DSS Requirement 3: PAN masking must be enabled',
+                        remediation: 'Enable PAN masking to protect cardholder data',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
+                    }
+                ]
+            },
+            {
+                id: 'PCI-REQ-4',
+                title: 'Encrypt transmission of cardholder data',
+                description: 'Encrypt cardholder data during transmission',
+                family: 'TRANSMISSION',
+                standard: 'PCI-DSS',
+                severity: 'error',
+                checks: [
+                    {
+                        id: 'data-encryption-disabled',
+                        pattern: /"ENCRYPT_DATA":\s*"false"/,
+                        message: 'PCI-DSS Requirement 4: Data encryption must be enabled for transmission',
+                        remediation: 'Enable encryption for all cardholder data transmissions',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
                     }
                 ]
             },
             {
                 id: 'PCI-REQ-10',
-                title: 'Track and monitor access to network resources',
-                description: 'Implement logging and monitoring for cardholder data access',
+                title: 'Track and monitor access to network and cardholder data',
+                description: 'Implement logging and monitoring',
                 family: 'MONITORING',
                 standard: 'PCI-DSS',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /access_logging\s*=\s*false/i,
-                        message: 'Access logging required for PCI DSS compliance',
-                        remediation: 'Enable comprehensive access logging for cardholder data environments'
+                        id: 'backup-retention-disabled',
+                        pattern: /"BackupRetentionPeriod":\s*0/,
+                        message: 'PCI-DSS Requirement 10: Backup retention must be configured for audit trails',
+                        remediation: 'Configure appropriate backup retention for audit logs',
+                        fileTypes: ['.json', '.yaml', '.yml', '.tf']
                     }
                 ]
             }
@@ -339,46 +427,59 @@ export class GlobalComplianceControls {
         return [
             {
                 id: 'ISO-A-8-2',
-                title: 'Information security in project management',
-                description: 'Information security should be integrated into project management',
-                family: 'ORGANIZATION',
+                title: 'Information Classification',
+                description: 'Information should be classified according to its sensitivity',
+                family: 'CLASSIFICATION',
                 standard: 'ISO-27001',
-                severity: 'warning',
+                severity: 'error',
                 checks: [
                     {
-                        pattern: /security_review\s*=\s*false/i,
-                        message: 'Security review should be integrated into project lifecycle',
-                        remediation: 'Integrate security review processes into project management'
+                        id: 'unclassified-data',
+                        pattern: /DataClassification\s*=\s*"unclassified"/i,
+                        message: 'ISO-27001 A.8.2: Information must be properly classified according to sensitivity',
+                        remediation: 'Implement proper data classification schemes (public, internal, confidential, restricted)',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        id: 'unknown-data-owner',
+                        pattern: /Owner\s*=\s*"unknown"/i,
+                        message: 'ISO-27001 A.8.1: Data ownership must be clearly defined',
+                        remediation: 'Assign clear data ownership and responsibility',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             },
             {
                 id: 'ISO-A-9-1',
-                title: 'Access control policy',
+                title: 'Access Control Policy',
                 description: 'Access control policy should be established and maintained',
                 family: 'ACCESS',
                 standard: 'ISO-27001',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /access_policy\s*=\s*["']none["']/i,
-                        message: 'Access control policy must be defined',
-                        remediation: 'Establish and document access control policies'
+                        id: 'overprivileged-policy',
+                        pattern: /Action\s*=\s*"\*"/i,
+                        message: 'ISO-27001 A.9.1: Access should follow principle of least privilege',
+                        remediation: 'Implement least privilege access controls instead of wildcard permissions',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             },
             {
-                id: 'ISO-A-10-1',
-                title: 'Cryptographic controls',
-                description: 'Policy on the use of cryptographic controls should be developed',
-                family: 'CRYPTOGRAPHY',
+                id: 'ISO-A-14-2',
+                title: 'Security in Development Lifecycle',
+                description: 'Information security should be integrated into development lifecycle',
+                family: 'DEVELOPMENT',
                 standard: 'ISO-27001',
-                severity: 'error',
+                severity: 'warning',
                 checks: [
                     {
-                        pattern: /encryption_policy\s*=\s*["']none["']/i,
-                        message: 'Cryptographic policy must be defined',
-                        remediation: 'Develop and implement cryptographic controls policy'
+                        id: 'insecure-development',
+                        pattern: /security_scanning\s*=\s*false/i,
+                        message: 'ISO-27001 A.14.2: Security scanning should be integrated into development',
+                        remediation: 'Implement security scanning in development and deployment processes',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             }
@@ -423,32 +524,74 @@ export class GlobalComplianceControls {
     private getSOC2Controls(): ComplianceControl[] {
         return [
             {
-                id: 'SOC2-CC-6.1',
-                title: 'Logical and Physical Access Controls',
-                description: 'Implement logical and physical access controls',
-                family: 'ACCESS',
+                id: 'SOC2-CC6.1',
+                title: 'Logical and Physical Access Controls - Security',
+                description: 'Restrict logical and physical access to confidential information',
+                family: 'SECURITY',
                 standard: 'SOC-2',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /multi_factor_auth\s*=\s*false/i,
-                        message: 'Multi-factor authentication should be implemented',
-                        remediation: 'Enable multi-factor authentication for access controls'
+                        id: 'hardcoded-credentials',
+                        pattern: /database-password:\s*[\w=]+|api-key:\s*[\w=]+/i,
+                        message: 'SOC-2 Security: Hardcoded credentials detected in configuration',
+                        remediation: 'Use secure secret management instead of hardcoded credentials',
+                        fileTypes: ['.yaml', '.yml', '.json', '.tf']
+                    },
+                    {
+                        id: 'access-control-disabled',
+                        pattern: /name:\s*ACCESS_CONTROL[\s\S]*?value:\s*"none"/i,
+                        message: 'SOC-2 Confidentiality: Access controls must be implemented',
+                        remediation: 'Implement proper access controls for confidential data',
+                        fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     }
                 ]
             },
             {
-                id: 'SOC2-CC-6.8',
-                title: 'Data Transmission and Disposal',
-                description: 'Protect data during transmission and disposal',
-                family: 'DATA',
+                id: 'SOC2-CC7.2',
+                title: 'System Monitoring - Availability',
+                description: 'Monitor system capacity and performance',
+                family: 'MONITORING',
                 standard: 'SOC-2',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /transmission_encryption\s*=\s*false/i,
-                        message: 'Data transmission encryption required',
-                        remediation: 'Enable encryption for all data transmissions'
+                        id: 'audit-logging-disabled',
+                        pattern: /name:\s*AUDIT_LOGGING[\s\S]*?value:\s*"disabled"/i,
+                        message: 'SOC-2 Availability: Audit logging must be enabled for monitoring',
+                        remediation: 'Enable comprehensive audit logging for system monitoring',
+                        fileTypes: ['.yaml', '.yml', '.json', '.tf']
+                    },
+                    {
+                        id: 'no-resource-limits',
+                        pattern: /resources:\s*\{\s*\}/i,
+                        message: 'SOC-2 Availability: Resource limits must be configured',
+                        remediation: 'Configure resource limits to ensure system availability',
+                        fileTypes: ['.yaml', '.yml', '.json', '.tf']
+                    }
+                ]
+            },
+            {
+                id: 'SOC2-CC6.7',
+                title: 'Data Transmission and Disposal - Security',
+                description: 'Protect data during transmission and disposal',
+                family: 'TRANSMISSION',
+                standard: 'SOC-2',
+                severity: 'error',
+                checks: [
+                    {
+                        id: 'encryption-disabled',
+                        pattern: /name:\s*ENCRYPT_COMMUNICATION[\s\S]*?value:\s*"false"/i,
+                        message: 'SOC-2 Security: Data encryption must be enabled for transmission',
+                        remediation: 'Enable encryption for all data communications',
+                        fileTypes: ['.yaml', '.yml', '.json', '.tf']
+                    },
+                    {
+                        id: 'public-service-exposure',
+                        pattern: /type:\s*LoadBalancer/i,
+                        message: 'SOC-2 Security: Services should not be publicly exposed without proper controls',
+                        remediation: 'Implement proper access controls for public services',
+                        fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     }
                 ]
             }
@@ -458,32 +601,60 @@ export class GlobalComplianceControls {
     private getNISTCSFControls(): ComplianceControl[] {
         return [
             {
-                id: 'NIST-ID-AM',
-                title: 'Asset Management',
-                description: 'Identify and manage physical devices and systems',
-                family: 'IDENTIFY',
-                standard: 'NIST-CSF',
-                severity: 'warning',
-                checks: [
-                    {
-                        pattern: /asset_inventory\s*=\s*false/i,
-                        message: 'Asset inventory should be maintained',
-                        remediation: 'Implement comprehensive asset inventory management'
-                    }
-                ]
-            },
-            {
-                id: 'NIST-PR-AC',
-                title: 'Identity Management and Access Control',
-                description: 'Manage access to assets and associated facilities',
+                id: 'NIST-PR-AC-1',
+                title: 'Identity and Access Management',
+                description: 'Identities and credentials are issued, managed, verified, revoked, and audited',
                 family: 'PROTECT',
                 standard: 'NIST-CSF',
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /identity_management\s*=\s*false/i,
-                        message: 'Identity management controls required',
-                        remediation: 'Implement identity management and access control systems'
+                        id: 'overprivileged-access',
+                        pattern: /policy_arn\s*=\s*"arn:aws:iam::aws:policy\/AdministratorAccess"/i,
+                        message: 'NIST-CSF PR.AC-1: Overprivileged access detected - violates least privilege principle',
+                        remediation: 'Implement principle of least privilege for user access',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        id: 'global-network-access',
+                        pattern: /cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0\/0"\s*\]/i,
+                        message: 'NIST-CSF PR.AC-4: Network access should be restricted to authorized users and devices',
+                        remediation: 'Restrict network access to specific IP ranges',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+            {
+                id: 'NIST-PR-DS-2',
+                title: 'Data-in-transit Protection',
+                description: 'Data-in-transit is protected',
+                family: 'PROTECT',
+                standard: 'NIST-CSF',
+                severity: 'error',
+                checks: [
+                    {
+                        id: 'unencrypted-protocols',
+                        pattern: /from_port\s*=\s*23.*# Telnet/i,
+                        message: 'NIST-CSF PR.DS-2: Unencrypted protocols (Telnet) should not be used',
+                        remediation: 'Use secure protocols like SSH instead of Telnet',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+            {
+                id: 'NIST-PR-DS-1',
+                title: 'Data-at-rest Protection',
+                description: 'Data-at-rest is protected',
+                family: 'PROTECT',
+                standard: 'NIST-CSF',
+                severity: 'warning',
+                checks: [
+                    {
+                        id: 'financial-data-protection',
+                        pattern: /bucket\s*=\s*"corporate-financial-data"/i,
+                        message: 'NIST-CSF PR.DS-1: Financial data requires enhanced protection and versioning',
+                        remediation: 'Implement versioning and backup strategies for sensitive financial data',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
             }
