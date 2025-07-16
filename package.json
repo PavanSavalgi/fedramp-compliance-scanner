@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "Compliance Scanner",
   "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for multi-standard compliance (FedRAMP, GDPR, HIPAA, PCI-DSS, ISO-27001, SOC-2, NIST-CSF) and security vulnerabilities with AI-enhanced reporting and intelligent caching",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"

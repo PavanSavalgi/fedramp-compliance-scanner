@@ -2,6 +2,45 @@
 
 All notable changes to the "fedramp-compliance-scanner" extension will be documented in this file.
 
+## [1.4.2] - 2025-07-17
+
+### 🔧 Individual Compliance Report Commands Fix
+
+#### ✨ Enhanced Individual Compliance Reports
+- **Fixed GDPR Report Generation**: GDPR compliance reports now automatically scan if no data exists
+- **Auto-Scan Functionality**: All individual compliance report commands now include automatic scanning
+- **Added Missing Commands**: Added individual report commands for DPDP, ISO-27002, SOC-2, and NIST-CSF
+- **Improved User Experience**: One-click report generation with automatic data refresh
+
+#### 📋 Complete Compliance Standards Coverage
+- **FedRAMP**: Generate FedRAMP Compliance Only Report ✅
+- **GDPR**: Generate GDPR Compliance Report ✅ (Fixed)
+- **HIPAA**: Generate HIPAA Compliance Report ✅
+- **PCI-DSS**: Generate PCI-DSS Compliance Report ✅
+- **ISO-27001**: Generate ISO-27001 Compliance Report ✅
+- **DPDP**: Generate DPDP Compliance Report ✅ (New)
+- **ISO-27002**: Generate ISO-27002 Compliance Report ✅ (New)
+- **SOC-2**: Generate SOC-2 Compliance Report ✅ (New)
+- **NIST-CSF**: Generate NIST-CSF Compliance Report ✅ (New)
+
+#### 🎯 GDPR Pattern Improvements
+- **Enhanced Regex Patterns**: Improved GDPR compliance detection patterns for better accuracy
+- **Multi-Format Support**: Better support for both YAML and Terraform formats
+- **Cross-Border Transfer Detection**: Enhanced detection of international data transfers
+- **Personal Data Handling**: Improved detection of personal data processing violations
+
+#### 🔧 Technical Enhancements
+- **Consistent Command Pattern**: All individual report commands follow the same auto-scan pattern
+- **Better Error Handling**: Enhanced error messages with specific compliance standard context
+- **Command Registration**: Proper registration and disposal of all compliance standard commands
+- **Package.json Updates**: Added missing command definitions and menu entries
+
+#### 🚀 User Experience Improvements
+- **Before**: "Please run a compliance scan first" warning message
+- **After**: "Running compliance scan for [STANDARD] report..." with automatic execution
+- **One-Click Reports**: Users can generate any compliance report with a single command
+- **Fresh Data**: Each report automatically ensures it has the latest scan results
+
 ## [1.4.1] - 2025-07-17
 
 ### 🚀 Performance Optimization & User Experience Enhancement
