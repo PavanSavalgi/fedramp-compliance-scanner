@@ -12,5 +12,13 @@
 		"FedRAMP",
 		"GDPR"
 	],
-	"fedrampCompliance.enableAutoScan": true
+	"fedrampCompliance.enableAutoScan": true,
+	"fedrampCompliance.excludePatterns": [
+		"**/node_modules/**",
+		"**/vendor/**",
+		"**/.git/**",
+		"**/.vscode-test/**",
+		"**/out/**",
+		"**/dist/**"
+	]
 }

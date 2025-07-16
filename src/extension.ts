@@ -247,8 +247,16 @@ export function activate(context: vscode.ExtensionContext) {
 			if (!lastReport) {
 				vscode.window.showInformationMessage('Running compliance scan for individual reports...');
 				lastReport = await complianceScanner.scanWorkspace();
+				if (lastReport) {
+					reportGenerator.storeReport(lastReport);
+				}
 			}
-			await individualReportGenerator.generateIndividualReports(lastReport);
+			
+			if (lastReport) {
+				await individualReportGenerator.generateIndividualReports(lastReport);
+			} else {
+				vscode.window.showErrorMessage('Failed to generate scan data for individual reports');
+			}
 		} catch (error) {
 			vscode.window.showErrorMessage(`Individual reports generation failed: ${error}`);
 		}
@@ -259,11 +267,22 @@ export function activate(context: vscode.ExtensionContext) {
 			let lastReport = reportGenerator.getLastReport();
 			if (!lastReport) {
 				vscode.window.showInformationMessage('Running compliance scan for GDPR report...');
+				// Scan workspace and store the result directly without opening webview
 				lastReport = await complianceScanner.scanWorkspace();
+				if (lastReport) {
+					// Store the report without opening a webview panel
+					reportGenerator.storeReport(lastReport);
+				}
 			}
-			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'GDPR');
+			
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'GDPR');
+			} else {
+				vscode.window.showErrorMessage('Failed to generate scan data for GDPR report');
+			}
 		} catch (error) {
 			vscode.window.showErrorMessage(`GDPR report generation failed: ${error}`);
+			console.error('GDPR report error:', error);
 		}
 	});
 
@@ -273,8 +292,16 @@ export function activate(context: vscode.ExtensionContext) {
 			if (!lastReport) {
 				vscode.window.showInformationMessage('Running compliance scan for HIPAA report...');
 				lastReport = await complianceScanner.scanWorkspace();
+				if (lastReport) {
+					reportGenerator.storeReport(lastReport);
+				}
 			}
-			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'HIPAA');
+			
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'HIPAA');
+			} else {
+				vscode.window.showErrorMessage('Failed to generate scan data for HIPAA report');
+			}
 		} catch (error) {
 			vscode.window.showErrorMessage(`HIPAA report generation failed: ${error}`);
 		}

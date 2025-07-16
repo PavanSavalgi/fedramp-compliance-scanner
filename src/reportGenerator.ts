@@ -1833,6 +1833,12 @@ ${this.getStandardRecommendations(standard, report)}
         return this.lastReport;
     }
 
+    // Public method to store a report without generating a webview
+    storeReport(report: ComplianceReport): void {
+        this.setLastReport(report);
+        this.saveReportToHistory(report);
+    }
+
     private setLastReport(report: ComplianceReport): void {
         this.lastReport = report;
     }
