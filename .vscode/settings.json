@@ -8,17 +8,9 @@
 	},
 	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
 	"typescript.tsc.autoDetect": "off",
+	"fedrampCompliance.enableAutoScan": true,
 	"fedrampCompliance.complianceStandards": [
 		"FedRAMP",
 		"GDPR"
-	],
-	"fedrampCompliance.enableAutoScan": true,
-	"fedrampCompliance.excludePatterns": [
-		"**/node_modules/**",
-		"**/vendor/**",
-		"**/.git/**",
-		"**/.vscode-test/**",
-		"**/out/**",
-		"**/dist/**"
 	]
 }

@@ -402,7 +402,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanGDPRCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanGDPR', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting GDPR compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['GDPR']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const gdprViolations = report.issues.filter(issue => 
@@ -436,7 +436,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanHIPAACommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanHIPAA', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting HIPAA compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['HIPAA']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const hipaaViolations = report.issues.filter(issue => 
@@ -470,7 +470,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanPCIDSSCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanPCIDSS', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting PCI-DSS compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['PCI-DSS']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const pciViolations = report.issues.filter(issue => 
@@ -504,7 +504,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanISO27001Command = vscode.commands.registerCommand('fedramp-compliance-scanner.scanISO27001', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting ISO-27001 compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['ISO-27001']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const iso27001Violations = report.issues.filter(issue => 
@@ -537,7 +537,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanFedRAMPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanFedRAMP', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting FedRAMP compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['FedRAMP']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const fedrampViolations = report.issues.filter(issue => 
@@ -570,7 +570,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanDPDPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanDPDP', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting DPDP compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['DPDP']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const dpdpViolations = report.issues.filter(issue => 
@@ -603,7 +603,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanISO27002Command = vscode.commands.registerCommand('fedramp-compliance-scanner.scanISO27002', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting ISO-27002 compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['ISO-27002']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const iso27002Violations = report.issues.filter(issue => 
@@ -636,7 +636,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanSOC2Command = vscode.commands.registerCommand('fedramp-compliance-scanner.scanSOC2', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting SOC-2 compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['SOC-2']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const soc2Violations = report.issues.filter(issue => 
@@ -669,7 +669,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const scanNISTCSFCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanNISTCSF', async () => {
 		try {
 			vscode.window.showInformationMessage('Starting NIST-CSF compliance scan...');
-			const report = await complianceScanner.scanWorkspace();
+			const report = await complianceScanner.scanWorkspaceWithStandards(['NIST-CSF']);
 			if (report) {
 				reportGenerator.storeReport(report);
 				const nistViolations = report.issues.filter(issue => 

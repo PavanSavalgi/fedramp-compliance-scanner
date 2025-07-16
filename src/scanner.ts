@@ -81,6 +81,55 @@ export class ComplianceScanner {
         return report;
     }
 
+    async scanWorkspaceWithStandards(complianceStandards: ComplianceStandard[], level?: FedRAMPLevel): Promise<ComplianceReport> {
+        const config = vscode.workspace.getConfiguration('fedrampCompliance');
+        const complianceLevel = level || config.get<FedRAMPLevel>('level', FedRAMPLevel.Moderate);
+        const includePatterns = config.get<string[]>('includePatterns', ['**/*.tf', '**/*.yaml', '**/*.yml', '**/*.json']);
+        const excludePatterns = config.get<string[]>('excludePatterns', ['**/node_modules/**', '**/vendor/**', '**/.git/**']);
+        const enableSecurityScan = config.get<boolean>('enableSecurityScan', true);
+
+        this.outputChannel.appendLine(`Starting compliance scan for standards: ${complianceStandards.join(', ')} with security vulnerability detection...`);
+        
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder found');
+        }
+
+        const allIssues: ComplianceIssue[] = [];
+        const allVulnerabilities: VulnerabilityIssue[] = [];
+        let totalFiles = 0;
+        let scannedFiles = 0;
+
+        // Process each workspace folder
+        for (const folder of workspaceFolders) {
+            // Find files matching include patterns
+            const files = await vscode.workspace.findFiles(
+                `{${includePatterns.join(',')}}`,
+                `{${excludePatterns.join(',')}}`
+            );
+
+            totalFiles += files.length;
+
+            if (files.length === 0) {
+                this.outputChannel.appendLine(`No files found matching patterns: ${includePatterns.join(', ')}`);
+                continue;
+            }
+
+            this.outputChannel.appendLine(`Found ${files.length} files to scan in ${folder.name}`);
+
+            // Scan files in batches with the specified standards
+            const batchResult = await this.scanFilesBatchWithStandards(files, complianceLevel, complianceStandards, enableSecurityScan);
+            allIssues.push(...batchResult.allIssues);
+            allVulnerabilities.push(...batchResult.allVulnerabilities);
+            scannedFiles += batchResult.scannedFiles;
+        }
+
+        const report = this.generateCombinedReport(complianceLevel, complianceStandards, totalFiles, scannedFiles, allIssues, allVulnerabilities);
+        this.outputChannel.appendLine(`Scan completed. Found ${allIssues.length} compliance issues and ${allVulnerabilities.length} security vulnerabilities.`);
+        
+        return report;
+    }
+
     async scanFile(filePath: string, level?: FedRAMPLevel, standards?: ComplianceStandard[]): Promise<ScanResult> {
         // Check cache first
         const cached = this.scanCache.get(filePath);
@@ -134,6 +183,59 @@ export class ComplianceScanner {
 
     // Optimized parallel file scanning
     private async scanFilesBatch(files: vscode.Uri[], level: FedRAMPLevel, complianceStandards: ComplianceStandard[], enableSecurityScan: boolean): Promise<{
+        allIssues: ComplianceIssue[];
+        allVulnerabilities: VulnerabilityIssue[];
+        scannedFiles: number;
+    }> {
+        const allIssues: ComplianceIssue[] = [];
+        const allVulnerabilities: VulnerabilityIssue[] = [];
+        let scannedFiles = 0;
+
+        // Process files in batches for better performance
+        for (let i = 0; i < files.length; i += this.BATCH_SIZE) {
+            const batch = files.slice(i, i + this.BATCH_SIZE);
+            
+            // Process batch in parallel
+            const batchPromises = batch.map(async (file) => {
+                try {
+                    const complianceResult = await this.scanFile(file.fsPath, level, complianceStandards);
+                    let securityResult: SecurityScanResult | null = null;
+                    
+                    if (enableSecurityScan) {
+                        securityResult = await this.securityScanner.scanFileForVulnerabilities(file.fsPath);
+                    }
+                    
+                    return { complianceResult, securityResult, file: file.fsPath };
+                } catch (error) {
+                    this.outputChannel.appendLine(`Error scanning ${file.fsPath}: ${error}`);
+                    return null;
+                }
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+            
+            for (const result of batchResults) {
+                if (result) {
+                    allIssues.push(...result.complianceResult.issues);
+                    if (result.securityResult) {
+                        allVulnerabilities.push(...result.securityResult.vulnerabilities);
+                    }
+                    scannedFiles++;
+                }
+            }
+
+            // Progress reporting for large scans
+            if (files.length > 50) {
+                const progress = Math.round((i + batch.length) / files.length * 100);
+                this.outputChannel.appendLine(`Scan progress: ${progress}% (${i + batch.length}/${files.length} files)`);
+            }
+        }
+
+        return { allIssues, allVulnerabilities, scannedFiles };
+    }
+
+    // New method to scan files in batch with specific compliance standards
+    private async scanFilesBatchWithStandards(files: vscode.Uri[], level: FedRAMPLevel, complianceStandards: ComplianceStandard[], enableSecurityScan: boolean): Promise<{
         allIssues: ComplianceIssue[];
         allVulnerabilities: VulnerabilityIssue[];
         scannedFiles: number;
