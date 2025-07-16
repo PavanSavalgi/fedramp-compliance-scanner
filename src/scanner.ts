@@ -1,21 +1,41 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FedRAMPLevel, ComplianceIssue, ComplianceReport, ScanResult, ComplianceStandard } from './types';
+import { ComplianceReport, FedRAMPLevel, ComplianceIssue, ComplianceStandard } from './types';
 import { FEDRAMP_CONTROLS, getControlsByLevel } from './controls';
-import { GlobalComplianceControls } from './globalComplianceControls';
 import { SecurityScanner } from './securityScanner';
-import { CombinedScanResult, VulnerabilityIssue } from './vulnerabilityTypes';
+import { VulnerabilityIssue, SecurityScanResult } from './vulnerabilityTypes';
+import { GlobalComplianceControls } from './globalComplianceControls';
+
+// Performance optimizations interfaces
+interface CacheEntry {
+    content: string;
+    lastModified: number;
+    issues: ComplianceIssue[];
+}
+
+interface ScanResult {
+    file?: string;
+    issues: ComplianceIssue[];
+    compliant: boolean;
+}
 
 export class ComplianceScanner {
-    private outputChannel: vscode.OutputChannel;
     private diagnosticCollection: vscode.DiagnosticCollection;
     private securityScanner: SecurityScanner;
+    private globalControls: GlobalComplianceControls;
+    private outputChannel: vscode.OutputChannel;
+    // Performance optimizations
+    private scanCache: Map<string, CacheEntry> = new Map();
+    private readonly BATCH_SIZE = 10;
+    // Regex pattern cache for improved performance
+    private patternCache: Map<string, RegExp> = new Map();
 
     constructor() {
-        this.outputChannel = vscode.window.createOutputChannel('FedRAMP Compliance');
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection('fedramp-compliance');
         this.securityScanner = new SecurityScanner();
+        this.globalControls = new GlobalComplianceControls();
+        this.outputChannel = vscode.window.createOutputChannel('FedRAMP Compliance Scanner');
     }
 
     async scanWorkspace(): Promise<ComplianceReport> {
@@ -47,29 +67,11 @@ export class ComplianceScanner {
 
                 totalFiles += files.length;
 
-                for (const file of files) {
-                    try {
-                        // Run compliance scan for all selected standards
-                        const complianceResult = await this.scanFile(file.fsPath, level, complianceStandards);
-                        allIssues.push(...complianceResult.issues);
-                        
-                        // Run security vulnerability scan
-                        if (enableSecurityScan) {
-                            const securityResult = await this.securityScanner.scanFileForVulnerabilities(file.fsPath);
-                            allVulnerabilities.push(...securityResult.vulnerabilities);
-                            
-                            // Update security diagnostics
-                            this.securityScanner.updateDiagnostics(file, securityResult.vulnerabilities);
-                        }
-                        
-                        scannedFiles++;
-                        
-                        // Update compliance diagnostics
-                        this.updateDiagnostics(file, complianceResult.issues);
-                    } catch (error) {
-                        this.outputChannel.appendLine(`Error scanning ${file.fsPath}: ${error}`);
-                    }
-                }
+                // Use optimized batch scanning
+                const batchResult = await this.scanFilesBatch(files, level, complianceStandards, enableSecurityScan);
+                allIssues.push(...batchResult.allIssues);
+                allVulnerabilities.push(...batchResult.allVulnerabilities);
+                scannedFiles += batchResult.scannedFiles;
             }
         }
 
@@ -80,6 +82,16 @@ export class ComplianceScanner {
     }
 
     async scanFile(filePath: string, level?: FedRAMPLevel, standards?: ComplianceStandard[]): Promise<ScanResult> {
+        // Check cache first
+        const cached = this.scanCache.get(filePath);
+        if (cached && cached.lastModified >= fs.statSync(filePath).mtimeMs) {
+            return {
+                file: filePath,
+                issues: cached.issues,
+                compliant: cached.issues.filter(i => i.severity === 'error').length === 0
+            };
+        }
+
         const config = vscode.workspace.getConfiguration('fedrampCompliance');
         const complianceLevel = level || config.get<FedRAMPLevel>('level', FedRAMPLevel.Moderate);
         const complianceStandards = standards || config.get<ComplianceStandard[]>('complianceStandards', ['FedRAMP']);
@@ -101,13 +113,17 @@ export class ComplianceScanner {
 
             for (const control of controls) {
                 for (const check of control.checks) {
-                    if (check.fileTypes && check.fileTypes.includes(fileExtension)) {
+                    // Use optimized file type checking
+                    if (this.shouldScanFile(filePath, check.fileTypes)) {
                         const checkIssues = this.performCheck(filePath, lines, control.id, check);
                         issues.push(...checkIssues);
                     }
                 }
             }
         }
+
+        // Update cache
+        this.updateCache(filePath, content, issues);
 
         return {
             file: filePath,
@@ -116,13 +132,112 @@ export class ComplianceScanner {
         };
     }
 
+    // Optimized parallel file scanning
+    private async scanFilesBatch(files: vscode.Uri[], level: FedRAMPLevel, complianceStandards: ComplianceStandard[], enableSecurityScan: boolean): Promise<{
+        allIssues: ComplianceIssue[];
+        allVulnerabilities: VulnerabilityIssue[];
+        scannedFiles: number;
+    }> {
+        const allIssues: ComplianceIssue[] = [];
+        const allVulnerabilities: VulnerabilityIssue[] = [];
+        let scannedFiles = 0;
+
+        // Process files in batches for better performance
+        for (let i = 0; i < files.length; i += this.BATCH_SIZE) {
+            const batch = files.slice(i, i + this.BATCH_SIZE);
+            
+            // Process batch in parallel
+            const batchPromises = batch.map(async (file) => {
+                try {
+                    const complianceResult = await this.scanFile(file.fsPath, level, complianceStandards);
+                    let securityResult: SecurityScanResult | null = null;
+                    
+                    if (enableSecurityScan) {
+                        securityResult = await this.securityScanner.scanFileForVulnerabilities(file.fsPath);
+                    }
+                    
+                    return { complianceResult, securityResult, file: file.fsPath };
+                } catch (error) {
+                    this.outputChannel.appendLine(`Error scanning ${file.fsPath}: ${error}`);
+                    return null;
+                }
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+            
+            for (const result of batchResults) {
+                if (result) {
+                    allIssues.push(...result.complianceResult.issues);
+                    if (result.securityResult) {
+                        allVulnerabilities.push(...result.securityResult.vulnerabilities);
+                    }
+                    scannedFiles++;
+                }
+            }
+
+            // Progress reporting for large scans
+            if (files.length > 50) {
+                const progress = Math.round((i + batch.length) / files.length * 100);
+                this.outputChannel.appendLine(`Scan progress: ${progress}% (${i + batch.length}/${files.length} files)`);
+            }
+        }
+
+        return { allIssues, allVulnerabilities, scannedFiles };
+    }
+
+    // Enhanced cache management
+    private updateCache(filePath: string, content: string, issues: ComplianceIssue[]): void {
+        const stats = fs.statSync(filePath);
+        this.scanCache.set(filePath, {
+            content,
+            lastModified: stats.mtimeMs,
+            issues
+        });
+
+        // Cache cleanup - keep only recent entries
+        if (this.scanCache.size > 1000) {
+            const oldEntries = Array.from(this.scanCache.entries())
+                .sort(([,a], [,b]) => b.lastModified - a.lastModified)
+                .slice(500);
+            
+            this.scanCache.clear();
+            oldEntries.forEach(([key, value]) => this.scanCache.set(key, value));
+        }
+    }
+
+    // Optimized pattern matching with caching
+    private getCompiledPattern(pattern: string | RegExp): RegExp {
+        if (pattern instanceof RegExp) {
+            return pattern;
+        }
+        
+        if (!this.patternCache.has(pattern)) {
+            this.patternCache.set(pattern, new RegExp(pattern, 'gi'));
+        }
+        
+        return this.patternCache.get(pattern)!;
+    }
+
+    // Enhanced file type filtering
+    private shouldScanFile(filePath: string, fileTypes?: string[]): boolean {
+        if (!fileTypes || fileTypes.length === 0) {
+            return true;
+        }
+        
+        const extension = path.extname(filePath);
+        return fileTypes.includes(extension);
+    }
+
     private performCheck(filePath: string, lines: string[], controlId: string, check: any): ComplianceIssue[] {
         const issues: ComplianceIssue[] = [];
 
         if (check.pattern) {
+            // Use cached compiled pattern for better performance
+            const compiledPattern = this.getCompiledPattern(check.pattern);
+            
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-                const match = line.match(check.pattern);
+                const match = line.match(compiledPattern);
                 
                 if (match) {
                     // This is a simplified check - in a real implementation, you'd have more sophisticated rules
@@ -299,7 +414,6 @@ export class ComplianceScanner {
     }
 
     public dispose() {
-        this.outputChannel.dispose();
         this.diagnosticCollection.dispose();
         this.securityScanner.dispose();
     }

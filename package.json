@@ -1,8 +1,8 @@
 {
   "name": "fedramp-compliance-scanner",
   "displayName": "Compliance Scanner",
-  "description": "VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced report generation",
-  "version": "1.3.2",
+  "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for multi-standard compliance (FedRAMP, GDPR, HIPAA, PCI-DSS, ISO-27001, SOC-2, NIST-CSF) and security vulnerabilities with AI-enhanced reporting and intelligent caching",
+  "version": "1.4.1",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -46,72 +46,72 @@
       {
         "command": "fedramp-compliance-scanner.scanWorkspace",
         "title": "Scan Workspace for FedRAMP Compliance & Security",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.scanFile",
         "title": "Scan Current File for FedRAMP Compliance & Security",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.securityScan",
         "title": "Security Vulnerability Scan Only",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateReport",
         "title": "Generate FedRAMP Compliance Report",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateComplianceReport",
         "title": "Generate Compliance Report Only",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateSecurityReport",
         "title": "Generate Security Vulnerability Report Only",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.setComplianceLevel",
         "title": "Set FedRAMP Compliance Level",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.selectComplianceStandards",
         "title": "Select Compliance Standards",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateIndividualReports",
         "title": "Generate Individual Compliance Reports",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateGDPRReport",
         "title": "Generate GDPR Compliance Report",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateHIPAAReport",
         "title": "Generate HIPAA Compliance Report",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generatePCIDSSReport",
         "title": "Generate PCI-DSS Compliance Report",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateISO27001Report",
         "title": "Generate ISO-27001 Compliance Report",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.generateFedRAMPOnlyReport",
         "title": "Generate FedRAMP Compliance Only Report",
-        "category": "FedRAMP"
+        "category": "Compliance"
       },
       {
         "command": "fedramp-compliance-scanner.refreshCompliance",
@@ -277,6 +277,30 @@
           },
           "default": [],
           "description": "History of compliance reports for trend analysis (automatically managed)"
+        },
+        "fedrampCompliance.batchSize": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Number of files to process in parallel (performance tuning)"
+        },
+        "fedrampCompliance.enableCaching": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable result caching to improve performance on unchanged files"
+        },
+        "fedrampCompliance.cacheSize": {
+          "type": "number",
+          "default": 1000,
+          "minimum": 100,
+          "maximum": 10000,
+          "description": "Maximum number of cached file results"
+        },
+        "fedrampCompliance.progressReporting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show progress reports for large scans (>50 files)"
         }
       }
     }
