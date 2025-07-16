@@ -2,6 +2,28 @@
 
 All notable changes to the "fedramp-compliance-scanner" extension will be documented in this file.
 
+## [1.4.2-hotfix] - 2025-07-17
+
+### 🚨 Critical Bug Fix - GDPR Report Hanging Issue
+
+#### 🛠️ Emergency Hotfix
+- **Fixed GDPR Report Hanging**: Resolved critical issue where GDPR compliance reports would hang at "Running scan for GDPR" message
+- **Added storeReport() Method**: Implemented non-blocking report storage to prevent webview panel blocking
+- **Enhanced Error Handling**: Improved error handling and user feedback for individual compliance commands
+- **Applied Pattern Fix**: Updated GDPR and HIPAA commands to use new non-blocking storeReport() pattern
+
+#### 🔧 Technical Implementation
+- **ReportGenerator Enhancement**: Added public `storeReport(report: ComplianceReport): void` method
+- **Command Pattern Update**: Individual compliance commands now use storeReport() instead of generateComplianceOnlyReport()
+- **Webview Prevention**: Prevents hanging caused by webview panel creation during individual report generation
+- **Auto-Scan Preservation**: Maintains automatic scanning functionality while fixing blocking issues
+
+#### 🎯 Issue Resolution
+- **Root Cause**: generateComplianceOnlyReport() was opening webview panels causing UI blocking
+- **Solution**: Direct report storage without webview panel creation for individual commands
+- **Impact**: GDPR, HIPAA, and all individual compliance reports now complete without hanging
+- **Testing**: Verified fix with comprehensive test suite and package validation
+
 ## [1.4.2] - 2025-07-17
 
 ### 🔧 Individual Compliance Report Commands Fix
