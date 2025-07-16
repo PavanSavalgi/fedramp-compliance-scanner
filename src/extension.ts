@@ -242,57 +242,133 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Individual compliance standard report commands
 	const generateIndividualReportsCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateIndividualReports', async () => {
-		const lastReport = reportGenerator.getLastReport();
-		if (!lastReport) {
-			vscode.window.showWarningMessage('Please run a compliance scan first.');
-			return;
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for individual reports...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateIndividualReports(lastReport);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Individual reports generation failed: ${error}`);
 		}
-		await individualReportGenerator.generateIndividualReports(lastReport);
 	});
 
 	const generateGDPRReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateGDPRReport', async () => {
-		const lastReport = reportGenerator.getLastReport();
-		if (!lastReport) {
-			vscode.window.showWarningMessage('Please run a compliance scan first.');
-			return;
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for GDPR report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'GDPR');
+		} catch (error) {
+			vscode.window.showErrorMessage(`GDPR report generation failed: ${error}`);
 		}
-		await individualReportGenerator.generateStandardSpecificReport(lastReport, 'GDPR');
 	});
 
 	const generateHIPAAReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateHIPAAReport', async () => {
-		const lastReport = reportGenerator.getLastReport();
-		if (!lastReport) {
-			vscode.window.showWarningMessage('Please run a compliance scan first.');
-			return;
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for HIPAA report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'HIPAA');
+		} catch (error) {
+			vscode.window.showErrorMessage(`HIPAA report generation failed: ${error}`);
 		}
-		await individualReportGenerator.generateStandardSpecificReport(lastReport, 'HIPAA');
 	});
 
 	const generatePCIDSSReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generatePCIDSSReport', async () => {
-		const lastReport = reportGenerator.getLastReport();
-		if (!lastReport) {
-			vscode.window.showWarningMessage('Please run a compliance scan first.');
-			return;
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for PCI-DSS report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'PCI-DSS');
+		} catch (error) {
+			vscode.window.showErrorMessage(`PCI-DSS report generation failed: ${error}`);
 		}
-		await individualReportGenerator.generateStandardSpecificReport(lastReport, 'PCI-DSS');
 	});
 
 	const generateISO27001ReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateISO27001Report', async () => {
-		const lastReport = reportGenerator.getLastReport();
-		if (!lastReport) {
-			vscode.window.showWarningMessage('Please run a compliance scan first.');
-			return;
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for ISO-27001 report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'ISO-27001');
+		} catch (error) {
+			vscode.window.showErrorMessage(`ISO-27001 report generation failed: ${error}`);
 		}
-		await individualReportGenerator.generateStandardSpecificReport(lastReport, 'ISO-27001');
 	});
 
 	const generateFedRAMPOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateFedRAMPOnlyReport', async () => {
-		const lastReport = reportGenerator.getLastReport();
-		if (!lastReport) {
-			vscode.window.showWarningMessage('Please run a compliance scan first.');
-			return;
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for FedRAMP report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'FedRAMP');
+		} catch (error) {
+			vscode.window.showErrorMessage(`FedRAMP report generation failed: ${error}`);
 		}
-		await individualReportGenerator.generateStandardSpecificReport(lastReport, 'FedRAMP');
+	});
+
+	const generateDPDPReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateDPDPReport', async () => {
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for DPDP report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'DPDP');
+		} catch (error) {
+			vscode.window.showErrorMessage(`DPDP report generation failed: ${error}`);
+		}
+	});
+
+	const generateISO27002ReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateISO27002Report', async () => {
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for ISO-27002 report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'ISO-27002');
+		} catch (error) {
+			vscode.window.showErrorMessage(`ISO-27002 report generation failed: ${error}`);
+		}
+	});
+
+	const generateSOC2ReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateSOC2Report', async () => {
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for SOC-2 report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'SOC-2');
+		} catch (error) {
+			vscode.window.showErrorMessage(`SOC-2 report generation failed: ${error}`);
+		}
+	});
+
+	const generateNISTCSFReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateNISTCSFReport', async () => {
+		try {
+			let lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan for NIST-CSF report...');
+				lastReport = await complianceScanner.scanWorkspace();
+			}
+			await individualReportGenerator.generateStandardSpecificReport(lastReport, 'NIST-CSF');
+		} catch (error) {
+			vscode.window.showErrorMessage(`NIST-CSF report generation failed: ${error}`);
+		}
 	});
 
 	// Register all disposables
@@ -313,7 +389,12 @@ export function activate(context: vscode.ExtensionContext) {
 		generateHIPAAReportCommand,
 		generatePCIDSSReportCommand,
 		generateISO27001ReportCommand,
-		generateFedRAMPOnlyReportCommand
+		generateFedRAMPOnlyReportCommand,
+		generateDPDPReportCommand,
+		generateISO27002ReportCommand,
+		generateSOC2ReportCommand,
+		generateNISTCSFReportCommand,
+		selectComplianceStandardsCommand
 	);
 
 	// Show welcome message

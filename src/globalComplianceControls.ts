@@ -72,21 +72,21 @@ export class GlobalComplianceControls {
                 checks: [
                     {
                         id: 'data-encryption-check',
-                        pattern: /name:\s*DATA_ENCRYPTION[\s\S]*?value:\s*["']false["']/i,
+                        pattern: /(name:\s*DATA_ENCRYPTION[\s\S]*?value:\s*["']false["']|DATA_ENCRYPTION\s*=\s*["']false["'])/i,
                         message: 'GDPR Article 25: Data encryption must be enabled by default',
                         remediation: 'Enable data encryption to comply with GDPR data protection by design',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     },
                     {
                         id: 'public-access-check',
-                        pattern: /public_access\s*=\s*true/i,
+                        pattern: /public_access\s*[=:]\s*["']?true["']?/i,
                         message: 'GDPR Article 25: Public access should be disabled by default for personal data',
                         remediation: 'Disable public access and implement proper access controls',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     },
                     {
                         id: 'anonymization-check',
-                        pattern: /name:\s*ANONYMIZE_DATA[\s\S]*?value:\s*["']false["']/i,
+                        pattern: /(name:\s*ANONYMIZE_DATA[\s\S]*?value:\s*["']false["']|ANONYMIZE_DATA\s*=\s*["']false["'])/i,
                         message: 'GDPR Article 25: Data anonymization should be enabled for personal data',
                         remediation: 'Enable data anonymization to protect personal data',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
@@ -103,21 +103,21 @@ export class GlobalComplianceControls {
                 checks: [
                     {
                         id: 'audit-logging-check',
-                        pattern: /name:\s*AUDIT_LOGGING[\s\S]*?value:\s*["']disabled["']/i,
+                        pattern: /(name:\s*AUDIT_LOGGING[\s\S]*?value:\s*["']disabled["']|AUDIT_LOGGING\s*=\s*["']disabled["'])/i,
                         message: 'GDPR Article 32: Audit logging must be enabled for data processing activities',
                         remediation: 'Enable comprehensive audit logging for GDPR compliance',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     },
                     {
                         id: 'data-transfer-check',
-                        pattern: /data_processing_location:\s*["']us-east-1["']/i,
+                        pattern: /(data_processing_location:\s*["']us-east-1["']|processing_location\s*=\s*["']us-east-1["'])/i,
                         message: 'GDPR Article 44: Cross-border data transfer requires adequate safeguards',
                         remediation: 'Implement adequate safeguards for international data transfers',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     },
                     {
                         id: 'backup-location-check',
-                        pattern: /backup_location:\s*["']asia-south-1["']/i,
+                        pattern: /(backup_location:\s*["']asia-south-1["']|backup_location\s*=\s*["']asia-south-1["'])/i,
                         message: 'GDPR Article 44: International backup storage requires GDPR compliance',
                         remediation: 'Ensure backup locations comply with GDPR requirements',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
@@ -134,14 +134,14 @@ export class GlobalComplianceControls {
                 checks: [
                     {
                         id: 'data-deletion-check',
-                        pattern: /data_deletion_policy:\s*["']never["']/i,
+                        pattern: /(data_deletion_policy:\s*["']never["']|deletion_policy\s*=\s*["']never["'])/i,
                         message: 'GDPR Article 17: Data deletion policy must support right to erasure',
                         remediation: 'Implement data deletion mechanisms to support GDPR right to erasure',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']
                     },
                     {
                         id: 'access-request-check',
-                        pattern: /access_request_handler:\s*["']disabled["']/i,
+                        pattern: /(access_request_handler:\s*["']disabled["']|access_request\s*=\s*["']disabled["'])/i,
                         message: 'GDPR Article 15: Data access request handling must be implemented',
                         remediation: 'Implement data access request handling for GDPR compliance',
                         fileTypes: ['.yaml', '.yml', '.json', '.tf']

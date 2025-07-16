@@ -114,6 +114,26 @@
         "category": "Compliance"
       },
       {
+        "command": "fedramp-compliance-scanner.generateDPDPReport",
+        "title": "Generate DPDP Compliance Report",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateISO27002Report",
+        "title": "Generate ISO-27002 Compliance Report",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateSOC2Report",
+        "title": "Generate SOC-2 Compliance Report",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateNISTCSFReport",
+        "title": "Generate NIST-CSF Compliance Report",
+        "category": "Compliance"
+      },
+      {
         "command": "fedramp-compliance-scanner.refreshCompliance",
         "title": "Refresh",
         "icon": "$(refresh)"
@@ -180,6 +200,22 @@
         },
         {
           "command": "fedramp-compliance-scanner.generateFedRAMPOnlyReport",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateDPDPReport",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateISO27002Report",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateSOC2Report",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateNISTCSFReport",
           "when": "workspaceFolderCount > 0"
         },
         {
