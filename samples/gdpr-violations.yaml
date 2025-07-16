@@ -1,0 +1,56 @@
+# GDPR Compliance Violations Sample
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-data-config
+data:
+  # GDPR VIOLATION: Personal data without consent mechanism
+  user_emails: |
+    john.doe@company.com,jane.smith@company.com,bob.wilson@company.com
+  
+  # GDPR VIOLATION: No data retention policy
+  customer_profiles: |
+    {
+      "users": [
+        {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john@example.com",
+          "phone": "+1234567890",
+          "address": "123 Main St, City, State",
+          "birth_date": "1990-01-01",
+          "ip_address": "192.168.1.100"
+        }
+      ]
+    }
+  
+  # GDPR VIOLATION: Cross-border data transfer without safeguards
+  data_processing_location: "us-east-1"
+  backup_location: "asia-south-1"
+  
+  # GDPR VIOLATION: No data subject rights implementation
+  data_deletion_policy: "never"
+  access_request_handler: "disabled"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-processor
+spec:
+  template:
+    spec:
+      containers:
+      - name: processor
+        image: data-processor:latest
+        env:
+        # GDPR VIOLATION: No encryption for personal data in transit
+        - name: DATA_ENCRYPTION
+          value: "false"
+        # GDPR VIOLATION: No audit logging for data access
+        - name: AUDIT_LOGGING
+          value: "disabled"
+        # GDPR VIOLATION: No data anonymization
+        - name: ANONYMIZE_DATA
+          value: "false"

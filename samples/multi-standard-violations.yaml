@@ -1,0 +1,232 @@
+# Multi-Standard Compliance Violations Sample
+# This file demonstrates violations across multiple compliance frameworks
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: non-compliant-app
+  labels:
+    # Missing compliance classification labels
+    compliance: "none"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: multi-compliance-secrets
+  namespace: non-compliant-app
+type: Opaque
+data:
+  # MULTIPLE VIOLATIONS: Hardcoded sensitive data
+  # GDPR: Personal data without proper consent management
+  # HIPAA: PHI in plain text storage
+  # PCI-DSS: Payment card data exposure
+  # FedRAMP: Federal data security violation
+  user-data: |
+    ewogICJ1c2VycyI6IFsKICAgIHsKICAgICAgImlkIjogMSwKICAgICAgIm5hbWUiOiAiSm9obiBEb2UiLAogICAgICAiZW1haWwiOiAiam9obi5kb2VAZXhhbXBsZS5jb20iLAogICAgICAic3NuIjogIjEyMy00NS02Nzg5IiwKICAgICAgImNyZWRpdF9jYXJkIjogIjQxMTEtMTExMS0xMTExLTExMTEiLAogICAgICAibWVkaWNhbF9pZCI6ICJNRUQxMjM0NTYiLAogICAgICAiZ292ZXJubWVudF9pZCI6ICJHT1Y3ODkwMTIiCiAgICB9CiAgXQp9
+  # Base64 encoded JSON with PII, PHI, and payment data
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnerable-application
+  namespace: non-compliant-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vulnerable-app
+  template:
+    metadata:
+      labels:
+        app: vulnerable-app
+    spec:
+      containers:
+      - name: app-container
+        image: vulnerable-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        # FedRAMP VIOLATION: No FIPS 140-2 compliance
+        - name: FIPS_MODE
+          value: "disabled"
+        
+        # HIPAA VIOLATION: No PHI encryption in transit
+        - name: ENCRYPT_PHI
+          value: "false"
+        
+        # PCI-DSS VIOLATION: No PAN masking
+        - name: MASK_CARD_DATA
+          value: "false"
+        
+        # GDPR VIOLATION: No data subject rights
+        - name: DATA_SUBJECT_RIGHTS
+          value: "disabled"
+        
+        # ISO-27001 VIOLATION: No access control
+        - name: ACCESS_CONTROL
+          value: "none"
+        
+        # SOC-2 VIOLATION: No audit logging
+        - name: AUDIT_LOGGING
+          value: "off"
+        
+        # NIST CSF VIOLATION: No continuous monitoring
+        - name: SECURITY_MONITORING
+          value: "disabled"
+        
+        # DPDP VIOLATION: Cross-border data transfer
+        - name: DATA_LOCATION
+          value: "global"
+        
+        # SECURITY VULNERABILITIES: Hardcoded secrets
+        - name: API_KEY
+          value: "sk_live_dangerous_key_123456"
+        - name: DATABASE_PASSWORD
+          value: "admin123"
+        - name: JWT_SECRET
+          value: "hardcoded_jwt_secret"
+        
+        resources:
+          # SOC-2 VIOLATION: No resource limits (Availability)
+          limits: {}
+          requests: {}
+        
+        securityContext:
+          # FedRAMP/ISO-27001 VIOLATION: Running as root
+          runAsUser: 0
+          runAsNonRoot: false
+          
+          # SECURITY VIOLATION: Privileged container
+          privileged: true
+          
+          # SECURITY VIOLATION: Allow privilege escalation
+          allowPrivilegeEscalation: true
+          
+          capabilities:
+            add:
+            - SYS_ADMIN
+            - NET_ADMIN
+            - ALL
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vulnerable-service
+  namespace: non-compliant-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http-insecure
+  - port: 22
+    targetPort: 22
+    protocol: TCP
+    name: ssh-open
+  selector:
+    app: vulnerable-app
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-traffic
+  namespace: non-compliant-app
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - {}  # Allow all ingress traffic
+  egress:
+  - {}  # Allow all egress traffic
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compliance-violations-config
+  namespace: non-compliant-app
+data:
+  # MULTIPLE COMPLIANCE VIOLATIONS in configuration
+  app.properties: |
+    # GDPR VIOLATIONS
+    gdpr.consent.required=false
+    gdpr.data.retention=infinite
+    gdpr.lawful.basis=none
+    gdpr.data.subject.rights=disabled
+    
+    # HIPAA VIOLATIONS
+    hipaa.phi.encryption=disabled
+    hipaa.access.logging=false
+    hipaa.minimum.necessary=false
+    hipaa.business.associate=unverified
+    
+    # PCI-DSS VIOLATIONS
+    pci.cardholder.data.encryption=none
+    pci.access.control=disabled
+    pci.vulnerability.management=none
+    pci.network.segmentation=false
+    
+    # FedRAMP VIOLATIONS
+    fedramp.fips.compliance=false
+    fedramp.continuous.monitoring=disabled
+    fedramp.incident.response=none
+    fedramp.supply.chain.security=unverified
+    
+    # ISO-27001 VIOLATIONS
+    iso27001.risk.assessment=none
+    iso27001.security.awareness=disabled
+    iso27001.change.management=bypassed
+    iso27001.business.continuity=none
+    
+    # SOC-2 VIOLATIONS
+    soc2.security.controls=disabled
+    soc2.availability.monitoring=false
+    soc2.processing.integrity=unverified
+    soc2.confidentiality.protection=none
+    
+    # NIST CSF VIOLATIONS
+    nist.identify.assets=false
+    nist.protect.data=disabled
+    nist.detect.events=false
+    nist.respond.incidents=none
+    nist.recover.operations=unplanned
+    
+    # DPDP VIOLATIONS
+    dpdp.data.localization=false
+    dpdp.consent.management=disabled
+    dpdp.data.fiduciary.registration=none
+    dpdp.children.data.protection=false
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: data-export-job
+  namespace: non-compliant-app
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: data-exporter
+            image: data-exporter:latest
+            env:
+            # MULTIPLE VIOLATIONS: Uncontrolled data export
+            - name: EXPORT_DESTINATION
+              value: "s3://public-bucket/sensitive-data/"
+            - name: ENCRYPTION_ENABLED
+              value: "false"
+            - name: ACCESS_LOGGING
+              value: "disabled"
+            - name: DATA_CLASSIFICATION_CHECK
+              value: "skip"
+          restartPolicy: OnFailure

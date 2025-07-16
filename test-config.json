@@ -1,0 +1,32 @@
+{
+  "resource": {
+    "aws_s3_bucket": {
+      "test_bucket": {
+        "bucket": "compliance-test-bucket",
+        "encryption": false,
+        "public_access": true,
+        "access_logging": false,
+        "versioning": false
+      }
+    },
+    "aws_instance": {
+      "web_server": {
+        "instance_type": "t3.micro",
+        "security_groups": ["sg-12345"],
+        "user_data": "password=hardcoded123",
+        "monitoring": false
+      }
+    },
+    "security_configuration": {
+      "ssl_policy": "NONE",
+      "encryption_at_rest": false,
+      "transmission_encryption": false,
+      "multi_factor_auth": false,
+      "audit_controls": false,
+      "firewall_rules": [],
+      "access_policy": "none",
+      "security_policy": "undefined",
+      "asset_classification": "unclassified"
+    }
+  }
+}

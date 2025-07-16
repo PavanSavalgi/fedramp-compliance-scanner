@@ -1,0 +1,136 @@
+# SOC-2 Type II Compliance Violations Sample
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: soc2-violations
+  namespace: production
+type: Opaque
+data:
+  # SOC-2 VIOLATION: Hardcoded credentials (Security criterion)
+  database-password: cGFzc3dvcmQxMjM=  # "password123" base64 encoded
+  api-key: YWJjZGVmZ2hpams=              # "abcdefghijk" base64 encoded
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: financial-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: financial-processor
+  template:
+    metadata:
+      labels:
+        app: financial-processor
+    spec:
+      containers:
+      - name: processor
+        image: financial-app:latest
+        env:
+        # SOC-2 VIOLATION: No encryption in transit (Security)
+        - name: ENCRYPT_COMMUNICATION
+          value: "false"
+        # SOC-2 VIOLATION: No audit logging (Availability/Monitoring)
+        - name: AUDIT_LOGGING
+          value: "disabled"
+        # SOC-2 VIOLATION: No data integrity checks (Processing Integrity)
+        - name: DATA_VALIDATION
+          value: "skip"
+        # SOC-2 VIOLATION: No access controls (Confidentiality)
+        - name: ACCESS_CONTROL
+          value: "none"
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        # SOC-2 VIOLATION: No resource limits (Availability)
+        resources: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: financial-service
+spec:
+  # SOC-2 VIOLATION: Service exposed to internet without proper controls
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: financial-processor
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # SOC-2 VIOLATION: Allow all traffic (Security/Confidentiality)
+  - {}
+  egress:
+  # SOC-2 VIOLATION: Allow all outbound traffic
+  - {}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: financial-config
+data:
+  # SOC-2 VIOLATION: Sensitive customer data in ConfigMap (Confidentiality)
+  customer-data: |
+    customers:
+      - id: 1
+        name: "John Doe"
+        ssn: "123-45-6789"
+        account: "1234567890"
+        balance: "50000.00"
+      - id: 2
+        name: "Jane Smith" 
+        ssn: "987-65-4321"
+        account: "0987654321"
+        balance: "75000.00"
+  
+  # SOC-2 VIOLATION: No data retention policy (Privacy)
+  data-retention: "indefinite"
+  
+  # SOC-2 VIOLATION: No backup verification (Availability)
+  backup-verification: "disabled"
+  
+  # SOC-2 VIOLATION: No change management (Processing Integrity)
+  change-approval: "not-required"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: financial-backup
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: backup-tool:latest
+            env:
+            # SOC-2 VIOLATION: Unencrypted backups (Security/Confidentiality)
+            - name: ENCRYPT_BACKUP
+              value: "false"
+            # SOC-2 VIOLATION: No backup integrity verification (Availability)
+            - name: VERIFY_BACKUP
+              value: "false"
+            # SOC-2 VIOLATION: Backup to unsecured location
+            - name: BACKUP_LOCATION
+              value: "s3://public-backup-bucket/financial-data"
+          restartPolicy: OnFailure

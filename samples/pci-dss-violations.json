@@ -1,0 +1,146 @@
+{
+  "_description": "PCI-DSS Compliance Violations Sample - Payment processing infrastructure with PCI-DSS violations",
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Payment processing infrastructure with PCI-DSS violations",
+  
+  "Resources": {
+    "PaymentDatabase": {
+      "Type": "AWS::RDS::DBInstance",
+      "Properties": {
+        "DBInstanceIdentifier": "payment-db",
+        "Engine": "mysql",
+        "MasterUsername": "admin",
+        "MasterUserPassword": "password123",
+        "StorageEncrypted": false,
+        "PubliclyAccessible": true,
+        "BackupRetentionPeriod": 0,
+        "DeletionProtection": false,
+        "EnableCloudwatchLogsExports": []
+      }
+    },
+    
+    "PaymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "credit-card-data",
+        "PublicReadPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::credit-card-data/*"
+            }
+          ]
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    
+    "PaymentLambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "process-payments",
+        "Environment": {
+          "Variables": {
+            "CREDIT_CARD_KEY": "4532-1234-5678-9012",
+            "API_SECRET": "sk_test_1234567890",
+            "ENCRYPT_DATA": "false",
+            "LOG_CARD_DATA": "true",
+            "MASK_PAN": "false"
+          }
+        }
+      }
+    },
+    
+    "PaymentSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Payment processing security group",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "CidrIp": "0.0.0.0/0",
+            "Description": "HTTP access for payment processing"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIp": "0.0.0.0/0",
+            "Description": "HTTPS access"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIp": "0.0.0.0/0",
+            "Description": "SSH access - should be restricted"
+          }
+        ]
+      }
+    },
+    
+    "PaymentInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": "ami-12345678",
+        "InstanceType": "t2.micro",
+        "SecurityGroups": [{"Ref": "PaymentSecurityGroup"}],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": ["", [
+              "#!/bin/bash\n",
+              "echo 'CARD_PROCESSOR_KEY=sk_live_sensitive_key' >> /etc/environment\n",
+              "echo 'DISABLE_SSL_VERIFY=true' >> /etc/environment\n",
+              "echo 'LOG_LEVEL=debug' >> /etc/environment\n"
+            ]]
+          }
+        }
+      }
+    },
+    
+    "PaymentRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "payment-processor-role",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {"Service": "*"},
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "PaymentAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "*",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

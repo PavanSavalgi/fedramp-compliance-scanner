@@ -1,0 +1,197 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fedramp-sample
+  # Issue: Missing security labels and annotations
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: fedramp-sample
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-app
+        image: nginx:latest  # Issue: Using 'latest' tag (CM-2 violation)
+        ports:
+        - containerPort: 80
+        # Issue: Running as root (AC-3 violation)
+        securityContext:
+          runAsUser: 0  # Should not run as root
+          privileged: true  # Issue: Privileged container (AC-3 violation)
+        env:
+        - name: DB_PASSWORD
+          value: "hardcodedpassword"  # Issue: Hardcoded secrets (IA-2 violation)
+        # Issue: No resource limits (CM-6 violation)
+        # resources:
+        #   limits:
+        #     memory: "512Mi"
+        #     cpu: "500m"
+        #   requests:
+        #     memory: "256Mi"
+        #     cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+  namespace: fedramp-sample
+spec:
+  selector:
+    app: web-app
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  type: LoadBalancer  # Issue: Directly exposing service (SC-7 violation)
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: fedramp-sample
+type: Opaque
+data:
+  # Issue: Base64 is not encryption (IA-2, SC-28 violation)
+  username: YWRtaW4=  # admin
+  password: cGFzc3dvcmQxMjM=  # password123
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: fedramp-sample
+data:
+  # Issue: Sensitive data in ConfigMap (SC-28 violation)
+  database_url: "postgresql://admin:password@db:5432/app"
+  api_key: "sk-1234567890abcdef"  # Issue: API key in plaintext
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: security-agent
+  namespace: fedramp-sample
+spec:
+  selector:
+    matchLabels:
+      app: security-agent
+  template:
+    metadata:
+      labels:
+        app: security-agent
+    spec:
+      hostNetwork: true  # Issue: Using host network (SC-7 violation)
+      hostPID: true      # Issue: Using host PID namespace (AC-3 violation)
+      containers:
+      - name: agent
+        image: security-agent:v1.0
+        securityContext:
+          privileged: true  # Issue: Privileged access (AC-3 violation)
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+          readOnly: false  # Issue: Write access to host (AC-3 violation)
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /  # Issue: Mounting host root filesystem
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all
+  namespace: fedramp-sample
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - {}  # Issue: Allows all ingress traffic (AC-3, SC-7 violation)
+  egress:
+  - {}  # Issue: Allows all egress traffic (AC-3, SC-7 violation)
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-pod
+  namespace: fedramp-sample
+spec:
+  containers:
+  - name: debug
+    image: busybox
+    command: ["sleep", "3600"]
+    securityContext:
+      capabilities:
+        add:
+        - SYS_ADMIN  # Issue: Dangerous capability (AC-3 violation)
+        - NET_ADMIN  # Issue: Network admin capability (SC-7 violation)
+      allowPrivilegeEscalation: true  # Issue: Privilege escalation allowed
+  # Issue: No security context restrictions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: overly-permissive-role
+rules:
+- apiGroups: ["*"]  # Issue: Access to all API groups (AC-3 violation)
+  resources: ["*"]  # Issue: Access to all resources (AC-3 violation)
+  verbs: ["*"]      # Issue: All verbs allowed (AC-3 violation)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dangerous-binding
+subjects:
+- kind: ServiceAccount
+  name: default  # Issue: Using default service account (IA-2 violation)
+  namespace: fedramp-sample
+roleRef:
+  kind: ClusterRole
+  name: overly-permissive-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: unencrypted-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data  # Issue: Using hostPath without encryption (SC-28 violation)
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  namespace: fedramp-sample
+spec:
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app-service
+            port:
+              number: 80
+  # Issue: No TLS configuration (SC-8 violation)
+  # tls:
+  # - hosts:
+  #   - app.example.com
+  #   secretName: app-tls

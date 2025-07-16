@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Sample CloudFormation template with FedRAMP compliance issues'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for resources
+
+Resources:
+  # S3 Bucket without encryption - SC-28 violation
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-fedramp-sample-bucket
+      # Missing encryption configuration
+      PublicReadPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'  # Issue: Public access (AC-3 violation)
+            Action: 's3:GetObject'
+            Resource: !Sub '${MyBucket}/*'
+
+  # Security Group with overly permissive rules
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for web servers
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # Issue: HTTP access from anywhere (SC-8, AC-3 violation)
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0  # Too permissive
+        # Issue: SSH access from anywhere (AC-3 violation)  
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0  # Should be restricted
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  # RDS Instance without encryption
+  MyDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: my-fedramp-db
+      DBInstanceClass: db.t3.micro
+      Engine: mysql
+      MasterUsername: admin
+      MasterUserPassword: hardcodedpassword123  # Issue: Hardcoded password (IA-2 violation)
+      AllocatedStorage: 20
+      StorageType: gp2
+      # Issue: No encryption at rest (SC-28 violation)
+      StorageEncrypted: false
+      # Issue: Public access (AC-3 violation)
+      PubliclyAccessible: true
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+
+  # Database Security Group - too permissive
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for database
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # Issue: Database port open to all (AC-3 violation)
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0  # Should be restricted to app tier only
+
+  # Application Load Balancer without SSL
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: my-fedramp-alb
+      Type: application
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref WebSecurityGroup
+      Subnets:
+        - subnet-12345
+        - subnet-67890
+
+  # HTTP Listener - SC-8 violation (should be HTTPS)
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup
+      LoadBalancerArn: !Ref MyLoadBalancer
+      Port: 80
+      Protocol: HTTP  # Issue: Should be HTTPS for secure transmission
+
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: my-fedramp-tg
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+
+  # IAM Role with excessive permissions
+  MyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: MyFedRAMPRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: OverlyPermissivePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Issue: Wildcard permissions (AC-3 violation)
+              - Effect: Allow
+                Action: '*'  # Too broad
+                Resource: '*'  # Too broad
+
+  # CloudWatch Log Group without retention
+  MyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/my-fedramp-function
+      # Issue: No retention policy (AU-4 violation)
+      # RetentionInDays: 90  # Should be set
+
+  # Lambda function without proper monitoring
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: my-fedramp-function
+      Runtime: python3.9
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          def handler(event, context):
+              return {'statusCode': 200, 'body': 'Hello World'}
+      Role: !GetAtt MyRole.Arn
+      # Issue: No monitoring/logging configuration (SI-4 violation)
+
+Outputs:
+  BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref MyBucket
+    
+  LoadBalancerDNS:
+    Description: DNS name of the load balancer
+    Value: !GetAtt MyLoadBalancer.DNSName
