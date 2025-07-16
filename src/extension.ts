@@ -398,6 +398,307 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Separated Scan Commands for Each Compliance Standard
+	const scanGDPRCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanGDPR', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting GDPR compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const gdprViolations = report.issues.filter(issue => 
+					issue.control.includes('GDPR') || 
+					issue.message.toLowerCase().includes('gdpr') ||
+					issue.message.toLowerCase().includes('personal data') ||
+					issue.message.toLowerCase().includes('data protection')
+				);
+				vscode.window.showInformationMessage(`GDPR scan completed! Found ${gdprViolations.length} GDPR-related issues. Use 'Generate GDPR Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('GDPR scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`GDPR scan failed: ${error}`);
+		}
+	});
+
+	const reportGDPRCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportGDPR', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'GDPR');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for GDPR Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`GDPR report generation failed: ${error}`);
+		}
+	});
+
+	const scanHIPAACommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanHIPAA', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting HIPAA compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const hipaaViolations = report.issues.filter(issue => 
+					issue.control.includes('HIPAA') || 
+					issue.message.toLowerCase().includes('hipaa') ||
+					issue.message.toLowerCase().includes('health') ||
+					issue.message.toLowerCase().includes('medical')
+				);
+				vscode.window.showInformationMessage(`HIPAA scan completed! Found ${hipaaViolations.length} HIPAA-related issues. Use 'Generate HIPAA Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('HIPAA scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`HIPAA scan failed: ${error}`);
+		}
+	});
+
+	const reportHIPAACommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportHIPAA', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'HIPAA');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for HIPAA Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`HIPAA report generation failed: ${error}`);
+		}
+	});
+
+	const scanPCIDSSCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanPCIDSS', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting PCI-DSS compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const pciViolations = report.issues.filter(issue => 
+					issue.control.includes('PCI-DSS') || 
+					issue.message.toLowerCase().includes('pci') ||
+					issue.message.toLowerCase().includes('payment') ||
+					issue.message.toLowerCase().includes('credit card')
+				);
+				vscode.window.showInformationMessage(`PCI-DSS scan completed! Found ${pciViolations.length} PCI-DSS-related issues. Use 'Generate PCI-DSS Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('PCI-DSS scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`PCI-DSS scan failed: ${error}`);
+		}
+	});
+
+	const reportPCIDSSCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportPCIDSS', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'PCI-DSS');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for PCI-DSS Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`PCI-DSS report generation failed: ${error}`);
+		}
+	});
+
+	const scanISO27001Command = vscode.commands.registerCommand('fedramp-compliance-scanner.scanISO27001', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting ISO-27001 compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const iso27001Violations = report.issues.filter(issue => 
+					issue.control.includes('ISO-27001') || 
+					issue.message.toLowerCase().includes('iso') ||
+					issue.message.toLowerCase().includes('information security')
+				);
+				vscode.window.showInformationMessage(`ISO-27001 scan completed! Found ${iso27001Violations.length} ISO-27001-related issues. Use 'Generate ISO-27001 Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('ISO-27001 scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`ISO-27001 scan failed: ${error}`);
+		}
+	});
+
+	const reportISO27001Command = vscode.commands.registerCommand('fedramp-compliance-scanner.reportISO27001', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'ISO-27001');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for ISO-27001 Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`ISO-27001 report generation failed: ${error}`);
+		}
+	});
+
+	const scanFedRAMPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanFedRAMP', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting FedRAMP compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const fedrampViolations = report.issues.filter(issue => 
+					issue.control.includes('FedRAMP') || 
+					issue.message.toLowerCase().includes('fedramp') ||
+					issue.message.toLowerCase().includes('federal')
+				);
+				vscode.window.showInformationMessage(`FedRAMP scan completed! Found ${fedrampViolations.length} FedRAMP-related issues. Use 'Generate FedRAMP Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('FedRAMP scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`FedRAMP scan failed: ${error}`);
+		}
+	});
+
+	const reportFedRAMPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportFedRAMP', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'FedRAMP');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for FedRAMP Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`FedRAMP report generation failed: ${error}`);
+		}
+	});
+
+	const scanDPDPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanDPDP', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting DPDP compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const dpdpViolations = report.issues.filter(issue => 
+					issue.control.includes('DPDP') || 
+					issue.message.toLowerCase().includes('dpdp') ||
+					issue.message.toLowerCase().includes('data protection')
+				);
+				vscode.window.showInformationMessage(`DPDP scan completed! Found ${dpdpViolations.length} DPDP-related issues. Use 'Generate DPDP Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('DPDP scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`DPDP scan failed: ${error}`);
+		}
+	});
+
+	const reportDPDPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportDPDP', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'DPDP');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for DPDP Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`DPDP report generation failed: ${error}`);
+		}
+	});
+
+	const scanISO27002Command = vscode.commands.registerCommand('fedramp-compliance-scanner.scanISO27002', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting ISO-27002 compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const iso27002Violations = report.issues.filter(issue => 
+					issue.control.includes('ISO-27002') || 
+					issue.message.toLowerCase().includes('iso-27002') ||
+					issue.message.toLowerCase().includes('security controls')
+				);
+				vscode.window.showInformationMessage(`ISO-27002 scan completed! Found ${iso27002Violations.length} ISO-27002-related issues. Use 'Generate ISO-27002 Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('ISO-27002 scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`ISO-27002 scan failed: ${error}`);
+		}
+	});
+
+	const reportISO27002Command = vscode.commands.registerCommand('fedramp-compliance-scanner.reportISO27002', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'ISO-27002');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for ISO-27002 Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`ISO-27002 report generation failed: ${error}`);
+		}
+	});
+
+	const scanSOC2Command = vscode.commands.registerCommand('fedramp-compliance-scanner.scanSOC2', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting SOC-2 compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const soc2Violations = report.issues.filter(issue => 
+					issue.control.includes('SOC-2') || 
+					issue.message.toLowerCase().includes('soc') ||
+					issue.message.toLowerCase().includes('service organization')
+				);
+				vscode.window.showInformationMessage(`SOC-2 scan completed! Found ${soc2Violations.length} SOC-2-related issues. Use 'Generate SOC-2 Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('SOC-2 scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`SOC-2 scan failed: ${error}`);
+		}
+	});
+
+	const reportSOC2Command = vscode.commands.registerCommand('fedramp-compliance-scanner.reportSOC2', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'SOC-2');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for SOC-2 Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`SOC-2 report generation failed: ${error}`);
+		}
+	});
+
+	const scanNISTCSFCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanNISTCSF', async () => {
+		try {
+			vscode.window.showInformationMessage('Starting NIST-CSF compliance scan...');
+			const report = await complianceScanner.scanWorkspace();
+			if (report) {
+				reportGenerator.storeReport(report);
+				const nistViolations = report.issues.filter(issue => 
+					issue.control.includes('NIST-CSF') || 
+					issue.message.toLowerCase().includes('nist') ||
+					issue.message.toLowerCase().includes('cybersecurity framework')
+				);
+				vscode.window.showInformationMessage(`NIST-CSF scan completed! Found ${nistViolations.length} NIST-CSF-related issues. Use 'Generate NIST-CSF Report' to view details.`);
+			} else {
+				vscode.window.showErrorMessage('NIST-CSF scan failed to generate results');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`NIST-CSF scan failed: ${error}`);
+		}
+	});
+
+	const reportNISTCSFCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportNISTCSF', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (lastReport) {
+				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'NIST-CSF');
+			} else {
+				vscode.window.showWarningMessage('No scan data found. Please run "Scan for NIST-CSF Compliance" first.');
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(`NIST-CSF report generation failed: ${error}`);
+		}
+	});
+
 	// Register all disposables
 	context.subscriptions.push(
 		scanWorkspaceCommand,
@@ -421,7 +722,25 @@ export function activate(context: vscode.ExtensionContext) {
 		generateISO27002ReportCommand,
 		generateSOC2ReportCommand,
 		generateNISTCSFReportCommand,
-		selectComplianceStandardsCommand
+		selectComplianceStandardsCommand,
+		scanGDPRCommand,
+		reportGDPRCommand,
+		scanHIPAACommand,
+		reportHIPAACommand,
+		scanPCIDSSCommand,
+		reportPCIDSSCommand,
+		scanISO27001Command,
+		reportISO27001Command,
+		scanFedRAMPCommand,
+		reportFedRAMPCommand,
+		scanDPDPCommand,
+		reportDPDPCommand,
+		scanISO27002Command,
+		reportISO27002Command,
+		scanSOC2Command,
+		reportSOC2Command,
+		scanNISTCSFCommand,
+		reportNISTCSFCommand
 	);
 
 	// Show welcome message

@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "Compliance Scanner",
   "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for multi-standard compliance (FedRAMP, GDPR, HIPAA, PCI-DSS, ISO-27001, SOC-2, NIST-CSF) and security vulnerabilities with AI-enhanced reporting and intelligent caching",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -131,6 +131,96 @@
       {
         "command": "fedramp-compliance-scanner.generateNISTCSFReport",
         "title": "Generate NIST-CSF Compliance Report",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanGDPR",
+        "title": "Scan for GDPR Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportGDPR",
+        "title": "Generate GDPR Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanHIPAA",
+        "title": "Scan for HIPAA Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportHIPAA",
+        "title": "Generate HIPAA Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanPCIDSS",
+        "title": "Scan for PCI-DSS Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportPCIDSS",
+        "title": "Generate PCI-DSS Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanISO27001",
+        "title": "Scan for ISO-27001 Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportISO27001",
+        "title": "Generate ISO-27001 Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanFedRAMP",
+        "title": "Scan for FedRAMP Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportFedRAMP",
+        "title": "Generate FedRAMP Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanDPDP",
+        "title": "Scan for DPDP Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportDPDP",
+        "title": "Generate DPDP Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanISO27002",
+        "title": "Scan for ISO-27002 Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportISO27002",
+        "title": "Generate ISO-27002 Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanSOC2",
+        "title": "Scan for SOC-2 Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportSOC2",
+        "title": "Generate SOC-2 Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scanNISTCSF",
+        "title": "Scan for NIST-CSF Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportNISTCSF",
+        "title": "Generate NIST-CSF Report (from last scan)",
         "category": "Compliance"
       },
       {

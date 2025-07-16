@@ -2,6 +2,50 @@
 
 All notable changes to the "fedramp-compliance-scanner" extension will be documented in this file.
 
+## [1.5.0] - 2025-07-17
+
+### 🎯 Separated Scan and Report Functionality
+
+#### ✨ Major Enhancement: Granular Control
+- **Separated Scan Commands**: Individual scan commands for each compliance standard
+- **Separated Report Commands**: Individual report generation commands for each standard
+- **Enhanced User Control**: Users can now scan once and generate multiple reports
+- **Optimized Workflow**: No need to re-scan for each report generation
+
+#### 📋 New Scan Commands
+- **Scan for GDPR Compliance**: Dedicated GDPR scanning with targeted violation detection
+- **Scan for HIPAA Compliance**: Focused HIPAA scanning with health data compliance checks
+- **Scan for PCI-DSS Compliance**: Specialized PCI-DSS scanning for payment security
+- **Scan for ISO-27001 Compliance**: Information security management scanning
+- **Scan for FedRAMP Compliance**: Federal compliance scanning for government requirements
+- **Scan for DPDP Compliance**: Data Protection and Privacy Act scanning
+- **Scan for ISO-27002 Compliance**: Security controls implementation scanning
+- **Scan for SOC-2 Compliance**: Service organization controls scanning
+- **Scan for NIST-CSF Compliance**: Cybersecurity framework compliance scanning
+
+#### 📊 New Report Commands
+- **Generate GDPR Report (from last scan)**: Create GDPR reports from existing scan data
+- **Generate HIPAA Report (from last scan)**: Generate HIPAA reports without re-scanning
+- **Generate PCI-DSS Report (from last scan)**: PCI-DSS report generation from cache
+- **Generate ISO-27001 Report (from last scan)**: ISO-27001 reports from stored data
+- **Generate FedRAMP Report (from last scan)**: FedRAMP reports using cached scan results
+- **Generate DPDP Report (from last scan)**: DPDP compliance reports from last scan
+- **Generate ISO-27002 Report (from last scan)**: Security controls reports from cache
+- **Generate SOC-2 Report (from last scan)**: SOC-2 reports without re-scanning
+- **Generate NIST-CSF Report (from last scan)**: Cybersecurity framework reports from data
+
+#### 🚀 Performance Improvements
+- **Faster Report Generation**: Generate multiple reports from single scan
+- **Reduced Resource Usage**: No duplicate scanning for multiple standards
+- **Smart Caching**: Intelligent use of cached scan results
+- **Enhanced User Feedback**: Clear messaging about scan progress and results
+
+#### 💡 User Experience Enhancements
+- **Contextual Messaging**: Specific violation counts for each compliance standard
+- **Clear Instructions**: Helpful prompts when scan data is missing
+- **Efficient Workflow**: Scan once, report many times
+- **Better Error Handling**: Improved error messages and user guidance
+
 ## [1.4.2-hotfix] - 2025-07-17
 
 ### 🚨 Critical Bug Fix - GDPR Report Hanging Issue
