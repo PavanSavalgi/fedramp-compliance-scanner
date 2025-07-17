@@ -933,8 +933,8 @@ ${report.issues.map(issue => `
     // Advanced Reporting Features
     async generateAdvancedDashboard(report: ComplianceReport, panel: vscode.WebviewPanel): Promise<void> {
         try {
-            const dashboardHTML = await this.advancedFeatures.generateInteractiveDashboard(report);
-            panel.webview.html = dashboardHTML;
+            // Use the advanced features to generate dashboard directly
+            await this.advancedFeatures.generateInteractiveDashboard(report);
             vscode.window.showInformationMessage('🎯 Advanced dashboard generated successfully!');
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to generate advanced dashboard: ${error}`);
@@ -1013,13 +1013,8 @@ ${report.issues.map(issue => `
             // Simulate data refresh
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            const updatedHTML = await this.advancedFeatures.generateInteractiveDashboard(report);
-            panel.webview.html = updatedHTML;
-            
-            panel.webview.postMessage({
-                command: 'dashboardRefreshed',
-                timestamp: new Date().toISOString()
-            });
+            // Generate fresh dashboard instead of updating existing panel
+            await this.advancedFeatures.generateInteractiveDashboard(report);
             
             vscode.window.showInformationMessage('🔄 Dashboard refreshed successfully!');
         } catch (error) {
