@@ -2,6 +2,38 @@
 
 All notable changes to the "fedramp-compliance-scanner" extension will be documented in this file.
 
+## [1.5.3] - 2025-07-17
+
+### 🔧 Major Fix: GDPR/Vulnerability Scan Separation
+
+#### 🚨 Problem Resolved
+- **Issue**: Individual compliance scans (GDPR, HIPAA, etc.) were running security vulnerability scans too
+- **Impact**: Compliance reports contaminated with security findings, making clean compliance analysis impossible
+- **Solution**: Separated compliance-only scanning from combined compliance + security scanning
+
+#### 🛠️ Technical Implementation
+- **Enhanced Method**: `scanWorkspaceWithStandards()` now accepts optional `enableSecurityScan` parameter
+- **Updated Commands**: All 9 individual compliance commands now disable security scanning (`enableSecurityScan: false`)
+- **Preserved Functionality**: Main workspace scan still does combined compliance + security scanning
+- **Enhanced Logging**: Clear debug output shows when security scanning is enabled/disabled
+
+#### ✅ Commands Now Compliance-Only
+- **GDPR**: Pure GDPR compliance scanning (no vulnerability noise)
+- **HIPAA**: Pure HIPAA compliance scanning  
+- **PCI-DSS**: Pure PCI-DSS compliance scanning
+- **ISO-27001**: Pure ISO-27001 compliance scanning
+- **FedRAMP**: Pure FedRAMP compliance scanning (individual command)
+- **DPDP**: Pure DPDP compliance scanning
+- **ISO-27002**: Pure ISO-27002 compliance scanning
+- **SOC-2**: Pure SOC-2 compliance scanning
+- **NIST-CSF**: Pure NIST-CSF compliance scanning
+
+#### 🎯 Benefits
+- Clean, focused compliance reports without security vulnerability contamination
+- Faster compliance-only scans (no vulnerability scanning overhead)
+- Better regulatory reporting accuracy
+- Enhanced debug capabilities for troubleshooting
+
 ## [1.5.1] - 2025-07-17
 
 ### 🚨 Critical Bug Fix - Individual Compliance Scan Commands

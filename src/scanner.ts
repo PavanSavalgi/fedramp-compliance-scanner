@@ -42,7 +42,7 @@ export class ComplianceScanner {
         const config = vscode.workspace.getConfiguration('fedrampCompliance');
         const level = config.get<FedRAMPLevel>('level', FedRAMPLevel.Moderate);
         const complianceStandards = config.get<ComplianceStandard[]>('complianceStandards', ['FedRAMP']);
-        const includePatterns = config.get<string[]>('includePatterns', ['**/*.tf', '**/*.yaml', '**/*.yml', '**/*.json']);
+        const includePatterns = config.get<string[]>('includePatterns', ['**/*.tf', '**/*.yaml', '**/*.yml', '**/*.json', '**/*.md', '**/*.txt', '**/*.sh', '**/*.py', '**/*.js', '**/*.ts']);
         const excludePatterns = config.get<string[]>('excludePatterns', ['**/node_modules/**', '**/vendor/**', '**/.git/**']);
         const enableSecurityScan = config.get<boolean>('enableSecurityScan', true);
 
@@ -81,19 +81,33 @@ export class ComplianceScanner {
         return report;
     }
 
-    async scanWorkspaceWithStandards(complianceStandards: ComplianceStandard[], level?: FedRAMPLevel): Promise<ComplianceReport> {
+    async scanWorkspaceWithStandards(complianceStandards: ComplianceStandard[], level?: FedRAMPLevel, enableSecurityScan?: boolean): Promise<ComplianceReport> {
+        console.log('\n🔍 DEBUG: scanWorkspaceWithStandards called');
+        console.log('📋 DEBUG: Standards requested:', JSON.stringify(complianceStandards));
+        console.log('📊 DEBUG: Level:', level);
+        console.log('🔒 DEBUG: Security scan enabled:', enableSecurityScan);
+        
         const config = vscode.workspace.getConfiguration('fedrampCompliance');
         const complianceLevel = level || config.get<FedRAMPLevel>('level', FedRAMPLevel.Moderate);
-        const includePatterns = config.get<string[]>('includePatterns', ['**/*.tf', '**/*.yaml', '**/*.yml', '**/*.json']);
+        const includePatterns = config.get<string[]>('includePatterns', ['**/*.tf', '**/*.yaml', '**/*.yml', '**/*.json', '**/*.md', '**/*.txt', '**/*.sh', '**/*.py', '**/*.js', '**/*.ts']);
         const excludePatterns = config.get<string[]>('excludePatterns', ['**/node_modules/**', '**/vendor/**', '**/.git/**']);
-        const enableSecurityScan = config.get<boolean>('enableSecurityScan', true);
+        
+        // If enableSecurityScan is explicitly provided, use that; otherwise use config default
+        const shouldEnableSecurityScan = enableSecurityScan !== undefined ? enableSecurityScan : config.get<boolean>('enableSecurityScan', true);
 
-        this.outputChannel.appendLine(`Starting compliance scan for standards: ${complianceStandards.join(', ')} with security vulnerability detection...`);
+        console.log('📁 DEBUG: Include patterns:', includePatterns);
+        console.log('🚫 DEBUG: Exclude patterns:', excludePatterns);
+        console.log('🔐 DEBUG: Final security scan setting:', shouldEnableSecurityScan);
+
+        this.outputChannel.appendLine(`Starting compliance scan for standards: ${complianceStandards.join(', ')}${shouldEnableSecurityScan ? ' with security vulnerability detection' : ' (compliance only)'}...`);
         
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
+            console.error('❌ DEBUG: No workspace folder found');
             throw new Error('No workspace folder found');
         }
+
+        console.log('📂 DEBUG: Workspace folders:', workspaceFolders.map(f => f.uri.fsPath));
 
         const allIssues: ComplianceIssue[] = [];
         const allVulnerabilities: VulnerabilityIssue[] = [];
@@ -102,11 +116,28 @@ export class ComplianceScanner {
 
         // Process each workspace folder
         for (const folder of workspaceFolders) {
+            console.log(`📁 DEBUG: Processing workspace folder: ${folder.uri.fsPath}`);
+            
             // Find files matching include patterns
             const files = await vscode.workspace.findFiles(
                 `{${includePatterns.join(',')}}`,
                 `{${excludePatterns.join(',')}}`
             );
+
+            console.log(`📄 DEBUG: Found ${files.length} files in workspace folder`);
+            
+            // Check specifically for test-compliance.md
+            const testFile = files.find(f => f.fsPath.includes('test-compliance.md'));
+            if (testFile) {
+                console.log('🎯 DEBUG: *** FOUND test-compliance.md file:', testFile.fsPath);
+            } else {
+                console.log('❌ DEBUG: test-compliance.md NOT found in file list');
+                console.log('📄 DEBUG: Files found:');
+                files.slice(0, 10).forEach(f => console.log(`  - ${f.fsPath}`));
+                if (files.length > 10) {
+                    console.log(`  ... and ${files.length - 10} more files`);
+                }
+            }
 
             totalFiles += files.length;
 
@@ -118,7 +149,7 @@ export class ComplianceScanner {
             this.outputChannel.appendLine(`Found ${files.length} files to scan in ${folder.name}`);
 
             // Scan files in batches with the specified standards
-            const batchResult = await this.scanFilesBatchWithStandards(files, complianceLevel, complianceStandards, enableSecurityScan);
+            const batchResult = await this.scanFilesBatchWithStandards(files, complianceLevel, complianceStandards, shouldEnableSecurityScan);
             allIssues.push(...batchResult.allIssues);
             allVulnerabilities.push(...batchResult.allVulnerabilities);
             scannedFiles += batchResult.scannedFiles;
@@ -131,9 +162,12 @@ export class ComplianceScanner {
     }
 
     async scanFile(filePath: string, level?: FedRAMPLevel, standards?: ComplianceStandard[]): Promise<ScanResult> {
+        console.log(`🔍 DEBUG: scanFile called for: ${filePath}`);
+        
         // Check cache first
         const cached = this.scanCache.get(filePath);
         if (cached && cached.lastModified >= fs.statSync(filePath).mtimeMs) {
+            console.log(`💾 DEBUG: Using cached result for ${filePath}`);
             return {
                 file: filePath,
                 issues: cached.issues,
@@ -145,26 +179,53 @@ export class ComplianceScanner {
         const complianceLevel = level || config.get<FedRAMPLevel>('level', FedRAMPLevel.Moderate);
         const complianceStandards = standards || config.get<ComplianceStandard[]>('complianceStandards', ['FedRAMP']);
         
+        console.log(`📊 DEBUG: scanFile - level: ${complianceLevel}, standards: ${JSON.stringify(complianceStandards)}`);
+        
         const content = fs.readFileSync(filePath, 'utf8');
         const lines = content.split('\n');
         const issues: ComplianceIssue[] = [];
         const fileExtension = path.extname(filePath);
+        
+        console.log(`📄 DEBUG: File content length: ${content.length}, lines: ${lines.length}, extension: ${fileExtension}`);
+        
+        if (filePath.includes('test-compliance.md')) {
+            console.log('🎯 DEBUG: *** Scanning test-compliance.md file ***');
+            console.log(`📋 DEBUG: First 200 chars of content: ${content.substring(0, 200)}...`);
+        }
 
         // Get controls for all selected standards
         for (const standard of complianceStandards) {
+            console.log(`🔧 DEBUG: Processing standard: ${standard}`);
             let controls;
             
             if (standard === 'FedRAMP') {
                 controls = getControlsByLevel(complianceLevel);
+                console.log(`📊 DEBUG: FedRAMP controls count: ${controls.length}`);
             } else {
-                controls = GlobalComplianceControls.getControlsByStandard(standard);
+                // Use instance method for consistency
+                controls = this.globalControls.getControlsForStandards([standard]);
+                console.log(`📊 DEBUG: ${standard} controls count: ${controls.length}`);
             }
 
             for (const control of controls) {
+                console.log(`🎯 DEBUG: Checking control: ${control.id} with ${control.checks.length} checks`);
+                
                 for (const check of control.checks) {
                     // Use optimized file type checking
-                    if (this.shouldScanFile(filePath, check.fileTypes)) {
+                    const shouldScan = this.shouldScanFile(filePath, check.fileTypes);
+                    console.log(`🔍 DEBUG: Control ${control.id}, check: ${check.description}, shouldScan: ${shouldScan}, fileTypes: ${JSON.stringify(check.fileTypes)}`);
+                    
+                    if (shouldScan) {
                         const checkIssues = this.performCheck(filePath, lines, control.id, check);
+                        console.log(`📊 DEBUG: Control ${control.id} generated ${checkIssues.length} issues`);
+                        
+                        if (filePath.includes('test-compliance.md') && checkIssues.length > 0) {
+                            console.log(`🎯 DEBUG: *** test-compliance.md issues from control ${control.id}: ***`);
+                            checkIssues.forEach((issue, index) => {
+                                console.log(`  ${index + 1}. Line ${issue.line}: ${issue.message}`);
+                            });
+                        }
+                        
                         issues.push(...checkIssues);
                     }
                 }
@@ -240,26 +301,53 @@ export class ComplianceScanner {
         allVulnerabilities: VulnerabilityIssue[];
         scannedFiles: number;
     }> {
+        console.log(`📄 DEBUG: scanFilesBatchWithStandards called with ${files.length} files`);
+        console.log('📋 DEBUG: Standards for batch:', complianceStandards);
+        console.log('📊 DEBUG: Level for batch:', level);
+        console.log('🔒 DEBUG: Security scan enabled for batch:', enableSecurityScan);
+        
         const allIssues: ComplianceIssue[] = [];
         const allVulnerabilities: VulnerabilityIssue[] = [];
         let scannedFiles = 0;
 
+        // Check for test file in this batch
+        const testFile = files.find(f => f.fsPath.includes('test-compliance.md'));
+        if (testFile) {
+            console.log('🎯 DEBUG: *** test-compliance.md found in current batch ***');
+        }
+
         // Process files in batches for better performance
         for (let i = 0; i < files.length; i += this.BATCH_SIZE) {
             const batch = files.slice(i, i + this.BATCH_SIZE);
+            console.log(`📦 DEBUG: Processing batch ${Math.floor(i/this.BATCH_SIZE) + 1} with ${batch.length} files`);
             
             // Process batch in parallel
             const batchPromises = batch.map(async (file) => {
                 try {
+                    console.log(`🔍 DEBUG: Scanning file: ${file.fsPath}`);
                     const complianceResult = await this.scanFile(file.fsPath, level, complianceStandards);
+                    console.log(`📊 DEBUG: File ${file.fsPath} generated ${complianceResult.issues.length} compliance issues`);
+                    
+                    if (file.fsPath.includes('test-compliance.md') && complianceResult.issues.length > 0) {
+                        console.log('🎯 DEBUG: *** test-compliance.md generated issues! ***');
+                        complianceResult.issues.forEach((issue, index) => {
+                            console.log(`  ${index + 1}. ${issue.control}: ${issue.message}`);
+                        });
+                    }
+                    
                     let securityResult: SecurityScanResult | null = null;
                     
                     if (enableSecurityScan) {
+                        console.log(`🔐 DEBUG: Running security scan for ${file.fsPath}`);
                         securityResult = await this.securityScanner.scanFileForVulnerabilities(file.fsPath);
+                        console.log(`🛡️ DEBUG: Security scan found ${securityResult?.vulnerabilities?.length || 0} vulnerabilities`);
+                    } else {
+                        console.log(`⏭️ DEBUG: Skipping security scan for ${file.fsPath} (disabled for compliance-only scan)`);
                     }
                     
                     return { complianceResult, securityResult, file: file.fsPath };
                 } catch (error) {
+                    console.error(`❌ DEBUG: Error scanning ${file.fsPath}:`, error);
                     this.outputChannel.appendLine(`Error scanning ${file.fsPath}: ${error}`);
                     return null;
                 }
@@ -314,7 +402,14 @@ export class ComplianceScanner {
         }
         
         if (!this.patternCache.has(pattern)) {
-            this.patternCache.set(pattern, new RegExp(pattern, 'gi'));
+            try {
+                this.patternCache.set(pattern, new RegExp(pattern, 'gi'));
+            } catch (error) {
+                console.error(`❌ Invalid regex pattern: "${pattern}"`);
+                console.error(`Error: ${error}`);
+                // Return a safe fallback pattern that won't match anything
+                this.patternCache.set(pattern, new RegExp('(?!.*)'));
+            }
         }
         
         return this.patternCache.get(pattern)!;
@@ -334,31 +429,39 @@ export class ComplianceScanner {
         const issues: ComplianceIssue[] = [];
 
         if (check.pattern) {
-            // Use cached compiled pattern for better performance
-            const compiledPattern = this.getCompiledPattern(check.pattern);
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const match = line.match(compiledPattern);
+            try {
+                console.log(`🔍 DEBUG: Processing pattern for ${controlId}/${check.id}`);
+                console.log(`📋 DEBUG: Pattern type: ${typeof check.pattern}`);
+                console.log(`📋 DEBUG: Pattern value: ${check.pattern}`);
                 
-                if (match) {
-                    // This is a simplified check - in a real implementation, you'd have more sophisticated rules
-                    // For now, we'll create issues based on certain patterns that might indicate non-compliance
+                // Use cached compiled pattern for better performance
+                const compiledPattern = this.getCompiledPattern(check.pattern);
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const match = line.match(compiledPattern);
                     
-                    // Example: Check for insecure configurations
-                    if (this.isInsecureConfiguration(line, controlId)) {
-                        issues.push({
-                            control: controlId,
-                            check: check.id,
-                            file: filePath,
-                            line: i + 1,
-                            column: match.index || 0,
-                            severity: check.severity,
-                            message: `${check.description}: ${this.getIssueMessage(controlId, line)}`,
-                            remediation: check.remediation
-                        });
+                    if (match) {
+                        // This is a simplified check - in a real implementation, you'd have more sophisticated rules
+                        // For now, we'll create issues based on certain patterns that might indicate non-compliance
+                        
+                        // Example: Check for insecure configurations
+                        if (this.isInsecureConfiguration(line, controlId)) {
+                            issues.push({
+                                control: controlId,
+                                check: check.id,
+                                file: filePath,
+                                line: i + 1,
+                                column: match.index || 0,
+                                severity: check.severity,
+                                message: `${check.description}: ${this.getIssueMessage(controlId, line)}`,
+                                remediation: check.remediation
+                            });
+                        }
                     }
                 }
+            } catch (error) {
+                console.error(`❌ DEBUG: Error processing pattern for ${controlId}/${check.id}:`, error);
             }
         }
 
@@ -455,7 +558,7 @@ export class ComplianceScanner {
             if (standard === 'FedRAMP') {
                 totalControls += getControlsByLevel(level).length;
             } else {
-                totalControls += GlobalComplianceControls.getControlsByStandard(standard).length;
+                totalControls += this.globalControls.getControlsForStandards([standard]).length;
             }
         }
 
@@ -489,7 +592,7 @@ export class ComplianceScanner {
             if (standard === 'FedRAMP') {
                 totalControls += getControlsByLevel(level).length;
             } else {
-                totalControls += GlobalComplianceControls.getControlsByStandard(standard).length;
+                totalControls += this.globalControls.getControlsForStandards([standard]).length;
             }
         }
 

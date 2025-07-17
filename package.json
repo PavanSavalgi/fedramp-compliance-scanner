@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "Compliance Scanner",
   "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for multi-standard compliance (FedRAMP, GDPR, HIPAA, PCI-DSS, ISO-27001, SOC-2, NIST-CSF) and security vulnerabilities with AI-enhanced reporting and intelligent caching",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -82,6 +82,30 @@
         "command": "fedramp-compliance-scanner.selectComplianceStandards",
         "title": "Select Compliance Standards",
         "category": "Compliance"
+      },
+      {
+        "command": "fedramp.showDashboard",
+        "title": "Show Compliance Dashboard",
+        "category": "Compliance",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "fedramp.toggleRealTimeMonitoring",
+        "title": "Toggle Real-time Monitoring",
+        "category": "Compliance",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "fedramp.showRemediations",
+        "title": "Show Available Remediations",
+        "category": "Compliance",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "fedramp.exportReport",
+        "title": "Export Compliance Report",
+        "category": "Compliance",
+        "icon": "$(save)"
       },
       {
         "command": "fedramp-compliance-scanner.generateIndividualReports",
@@ -311,6 +335,22 @@
         {
           "command": "fedramp-compliance-scanner.securityScan",
           "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp.showDashboard",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp.toggleRealTimeMonitoring",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp.showRemediations",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp.exportReport",
+          "when": "workspaceFolderCount > 0"
         }
       ],
       "view/title": [
@@ -380,7 +420,13 @@
             "**/*.yaml",
             "**/*.yml",
             "**/*.json",
-            "**/*.hcl"
+            "**/*.hcl",
+            "**/*.md",
+            "**/*.txt",
+            "**/*.sh",
+            "**/*.py",
+            "**/*.js",
+            "**/*.ts"
           ],
           "description": "File patterns to include in compliance scanning"
         },
@@ -427,6 +473,39 @@
           "type": "boolean",
           "default": true,
           "description": "Show progress reports for large scans (>50 files)"
+        },
+        "fedrampCompliance.realTimeMonitoring": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time monitoring of file changes for instant compliance feedback"
+        },
+        "fedrampCompliance.autoRemediation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto-remediation suggestions and code actions for compliance violations"
+        },
+        "fedrampCompliance.executiveDashboard": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable executive dashboard with visual compliance analytics"
+        },
+        "fedrampCompliance.exportFormat": {
+          "type": "string",
+          "enum": [
+            "PDF",
+            "HTML",
+            "JSON",
+            "CSV"
+          ],
+          "default": "PDF",
+          "description": "Default format for exporting compliance reports"
+        },
+        "fedrampCompliance.dashboardRefreshInterval": {
+          "type": "number",
+          "default": 30,
+          "minimum": 10,
+          "maximum": 300,
+          "description": "Dashboard refresh interval in seconds"
         }
       }
     }
