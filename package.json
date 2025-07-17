@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
   "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced reporting and intelligent caching",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -342,11 +342,7 @@
   "dependencies": {
     "chart.js": "^4.4.0",
     "d3": "^7.8.5",
-    "canvas": "^2.11.2",
-    "jsdom": "^22.1.0",
-    "pdfkit": "^0.13.0",
     "csv-stringify": "^6.4.0",
-    "fast-glob": "^3.3.0",
-    "crypto": "^1.0.1"
+    "fast-glob": "^3.3.0"
   }
 }
