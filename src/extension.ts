@@ -339,6 +339,95 @@ export function activate(context: vscode.ExtensionContext): void {
 		}
 	});
 
+	// COST ANALYSIS & COMPREHENSIVE METRICS COMMANDS
+	const generateCostAnalysisCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateCostAnalysis', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
+				return;
+			}
+
+			vscode.window.showInformationMessage('Generating infrastructure cost analysis...');
+			const costReport = await advancedReporting.generateCostAnalysisReport(lastReport);
+			
+			// Display cost report in a new document
+			const doc = await vscode.workspace.openTextDocument({
+				content: costReport,
+				language: 'markdown'
+			});
+			await vscode.window.showTextDocument(doc);
+			
+			vscode.window.showInformationMessage('Infrastructure cost analysis completed!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Cost analysis failed: ${error}`);
+		}
+	});
+
+	const generateComprehensiveDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComprehensiveDashboard', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
+				return;
+			}
+
+			vscode.window.showInformationMessage('Generating comprehensive analytics dashboard...');
+			await advancedReporting.generateComprehensiveAnalyticsDashboard(lastReport);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Comprehensive dashboard generation failed: ${error}`);
+		}
+	});
+
+	const generateComplianceForecastCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComplianceForecast', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
+				return;
+			}
+
+			vscode.window.showInformationMessage('Generating compliance forecast...');
+			const forecast = await advancedReporting.generateComplianceForecast(lastReport);
+			
+			const forecastReport = `
+# 🔮 FedRAMP Compliance Forecast
+
+## Time to Compliance: ${forecast.timeToCompliance}
+
+## 📊 12-Month Cost Projection
+${forecast.costProjection.map((cost, index) => `Month ${index + 1}: $${cost.toLocaleString()}`).join('\n')}
+
+## 🎯 Key Milestones
+${forecast.milestones.map(milestone => `
+**${milestone.milestone}**
+- Date: ${milestone.date}
+- Expected Cost: $${milestone.expectedCost.toLocaleString()}
+- Risk Reduction: ${milestone.riskReduction}%
+- Controls: ${milestone.controlsCovered.join(', ')}
+`).join('\n')}
+
+## 🚀 Priority Recommendations
+${forecast.recommendations.map(rec => `
+**${rec.action}** (${rec.priority.toUpperCase()})
+- Cost Impact: ${rec.costImpact < 0 ? 'Savings' : 'Investment'} $${Math.abs(rec.costImpact).toLocaleString()}
+- Timeframe: ${rec.timeframe}
+- Expected ROI: ${rec.expectedROI}%
+`).join('\n')}
+			`;
+
+			const doc = await vscode.workspace.openTextDocument({
+				content: forecastReport,
+				language: 'markdown'
+			});
+			await vscode.window.showTextDocument(doc);
+			
+			vscode.window.showInformationMessage('Compliance forecast generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Forecast generation failed: ${error}`);
+		}
+	});
+
 	// Register all disposables
 	context.subscriptions.push(
 		scanWorkspaceCommand,
@@ -362,7 +451,11 @@ export function activate(context: vscode.ExtensionContext): void {
 		generateTrendAnalysisCommand,
 		generateInteractiveReportCommand,
 		scheduleReportsCommand,
-		exportAdvancedReportCommand
+		exportAdvancedReportCommand,
+		// Cost Analysis & Comprehensive Metrics Features
+		generateCostAnalysisCommand,
+		generateComprehensiveDashboardCommand,
+		generateComplianceForecastCommand
 	);
 
 	// Show welcome message

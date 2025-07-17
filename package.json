@@ -1,8 +1,8 @@
 {
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
-  "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced reporting and intelligent caching",
-  "version": "1.8.1",
+  "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced reporting, cost analysis, and comprehensive metrics",
+  "version": "1.9.0",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -146,6 +146,24 @@
         "command": "fedramp-compliance-scanner.exportAdvancedReport",
         "title": "Export Advanced Report",
         "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateCostAnalysis",
+        "title": "Generate Infrastructure Cost Analysis",
+        "category": "Cost Analytics",
+        "icon": "$(graph-line)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateComprehensiveDashboard",
+        "title": "Generate Comprehensive Analytics Dashboard",
+        "category": "Cost Analytics",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateComplianceForecast",
+        "title": "Generate Compliance Forecast",
+        "category": "Cost Analytics",
+        "icon": "$(graph)"
       }
     ],
     "views": {

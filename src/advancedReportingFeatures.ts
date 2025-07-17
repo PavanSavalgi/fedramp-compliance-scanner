@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { ComplianceReport, ComplianceIssue } from './types';
+import { AdvancedCostAnalyticsEngine } from './advancedCostAnalyticsEngine';
+import { ComprehensiveMetricsDashboard } from './comprehensiveMetricsDashboard';
 
 export interface DashboardMetrics {
     complianceScore: number;
@@ -75,11 +77,15 @@ export interface TrendAnalysis {
 
 export class AdvancedReportingFeatures {
     private static instance: AdvancedReportingFeatures;
+    private costAnalytics: AdvancedCostAnalyticsEngine;
+    private metricsDashboard: ComprehensiveMetricsDashboard;
     private reportHistory: ComplianceReport[] = [];
     private apiEndpoints: Map<string, string> = new Map();
     private scheduledExports: Map<string, any> = new Map();
 
     constructor() {
+        this.costAnalytics = new AdvancedCostAnalyticsEngine();
+        this.metricsDashboard = new ComprehensiveMetricsDashboard();
         this.initializeAPIs();
     }
 
@@ -97,10 +103,76 @@ export class AdvancedReportingFeatures {
     }
 
     // Advanced Dashboard Generation
-    async generateInteractiveDashboard(report: ComplianceReport): Promise<string> {
-        const metrics = this.calculateDashboardMetrics(report);
-        const chartData = this.generateChartData(report);
-        const heatMapData = this.generateRiskHeatMap(report);
+    async generateInteractiveDashboard(report: ComplianceReport): Promise<void> {
+        try {
+            const metrics = this.calculateDashboardMetrics(report);
+            const chartData = this.generateChartData(report);
+            const heatMapData = this.generateRiskHeatMap(report);
+
+            // Create webview panel
+            const panel = vscode.window.createWebviewPanel(
+                'fedRAMPDashboard',
+                '🎯 FedRAMP Advanced Dashboard',
+                vscode.ViewColumn.One,
+                {
+                    enableScripts: true,
+                    retainContextWhenHidden: true
+                }
+            );
+
+            // Set the webview content
+            panel.webview.html = this.generateDashboardHTML(metrics, chartData, heatMapData, report);
+            
+            // Handle messages from the webview
+            panel.webview.onDidReceiveMessage(
+                message => {
+                    switch (message.command) {
+                        case 'refreshDashboard':
+                            // Refresh dashboard data
+                            break;
+                        case 'exportDashboard':
+                            vscode.window.showInformationMessage('Dashboard export functionality not yet implemented');
+                            break;
+                    }
+                }
+            );
+
+            vscode.window.showInformationMessage('🎯 FedRAMP Advanced Dashboard opened successfully!');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to generate dashboard: ${error}`);
+            console.error('Dashboard generation error:', error);
+        }
+    }
+
+    // Cost Analysis & Comprehensive Metrics Methods
+    async generateCostAnalysisReport(report: ComplianceReport): Promise<string> {
+        return await this.costAnalytics.generateCostAnalysisReport(report);
+    }
+
+    async generateInfrastructureCostAnalysis(report: ComplianceReport) {
+        return await this.costAnalytics.analyzeInfrastructureCosts(report);
+    }
+
+    async generateComplianceForecast(report: ComplianceReport) {
+        const infrastructureCosts = await this.costAnalytics.analyzeInfrastructureCosts(report);
+        return await this.costAnalytics.generateComplianceForecast(report, infrastructureCosts);
+    }
+
+    async generateComprehensiveMetrics(report: ComplianceReport) {
+        return await this.metricsDashboard.generateComprehensiveMetrics(report);
+    }
+
+    async generateComprehensiveAnalyticsDashboard(report: ComplianceReport): Promise<void> {
+        try {
+            await this.metricsDashboard.createInteractiveDashboard(report);
+            vscode.window.showInformationMessage('📊 Comprehensive Analytics Dashboard opened successfully!');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to generate analytics dashboard: ${error}`);
+            console.error('Analytics dashboard generation error:', error);
+        }
+    }
+
+    private generateDashboardHTML(metrics: DashboardMetrics, chartData: ChartData, heatMapData: any, report: ComplianceReport): string {
 
         return `
         <!DOCTYPE html>
@@ -782,7 +854,11 @@ export class AdvancedReportingFeatures {
     }
 
     private async generateAdvancedHTMLReport(report: ComplianceReport, options: any): Promise<string> {
-        let content = await this.generateInteractiveDashboard(report);
+        const metrics = this.calculateDashboardMetrics(report);
+        const chartData = this.generateChartData(report);
+        const heatMapData = this.generateRiskHeatMap(report);
+        
+        let content = this.generateDashboardHTML(metrics, chartData, heatMapData, report);
         
         if (options.includeExecutiveSummary) {
             const summary = await this.generateExecutiveSummary(report);
