@@ -2952,6 +2952,121 @@ export class GlobalComplianceControls {
                 ]
             },
 
+            {
+                id: 'SC-10',
+                title: 'Network Disconnect',
+                description: 'The information system terminates the network connection at the end of the session or after a defined time period of inactivity.',
+                family: 'SC',
+                standard: 'FedRAMP',
+                severity: 'error',
+                checks: [
+                    {
+                        pattern: /network[_-]?disconnect|session[_-]?timeout|connection[_-]?timeout|idle[_-]?timeout/i,
+                        message: 'FedRAMP SC-10: Implement network disconnect controls',
+                        remediation: 'Configure network session timeouts and automatic disconnection',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        pattern: /max[_-]?session[_-]?time|session[_-]?duration|connection[_-]?limit/i,
+                        message: 'FedRAMP SC-10: Verify session time limits',
+                        remediation: 'Define maximum session duration limits',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+
+            {
+                id: 'SC-17',
+                title: 'Public Key Infrastructure Certificates',
+                description: 'The information system receives and validates certificates used in PKI applications.',
+                family: 'SC',
+                standard: 'FedRAMP',
+                severity: 'error',
+                checks: [
+                    {
+                        pattern: /pki[_-]?certificate|public[_-]?key[_-]?infrastructure|certificate[_-]?validation|x509[_-]?certificate/i,
+                        message: 'FedRAMP SC-17: Implement PKI certificate management',
+                        remediation: 'Configure proper PKI certificate validation and management',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        pattern: /certificate[_-]?authority|ca[_-]?cert|cert[_-]?chain|certificate[_-]?revocation/i,
+                        message: 'FedRAMP SC-17: Verify certificate authority configuration',
+                        remediation: 'Implement certificate authority and revocation checking',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+
+            {
+                id: 'SC-18',
+                title: 'Mobile Code',
+                description: 'The information system identifies and controls the use of mobile code.',
+                family: 'SC',
+                standard: 'FedRAMP',
+                severity: 'warning',
+                checks: [
+                    {
+                        pattern: /mobile[_-]?code|javascript[_-]?execution|script[_-]?execution|active[_-]?content/i,
+                        message: 'FedRAMP SC-18: Control mobile code execution',
+                        remediation: 'Implement controls for mobile code and active content',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json', '.js', '.html']
+                    },
+                    {
+                        pattern: /content[_-]?security[_-]?policy|csp[_-]?header|script[_-]?src[_-]?control/i,
+                        message: 'FedRAMP SC-18: Implement content security policies',
+                        remediation: 'Configure content security policies to control mobile code',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json', '.html']
+                    }
+                ]
+            },
+
+            {
+                id: 'SC-19',
+                title: 'Voice Over Internet Protocol',
+                description: 'The information system protects the confidentiality and integrity of VoIP communications.',
+                family: 'SC',
+                standard: 'FedRAMP',
+                severity: 'warning',
+                checks: [
+                    {
+                        pattern: /voip|voice[_-]?over[_-]?ip|sip[_-]?protocol|rtp[_-]?encryption|voice[_-]?communication/i,
+                        message: 'FedRAMP SC-19: Implement VoIP security controls',
+                        remediation: 'Configure VoIP encryption and security measures',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        pattern: /voice[_-]?encryption|sip[_-]?tls|srtp[_-]?encryption|voice[_-]?security/i,
+                        message: 'FedRAMP SC-19: Verify VoIP encryption implementation',
+                        remediation: 'Implement SRTP and SIP-TLS for VoIP security',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+
+            {
+                id: 'SC-23',
+                title: 'Session Authenticity',
+                description: 'The information system protects the authenticity of communications sessions.',
+                family: 'SC',
+                standard: 'FedRAMP',
+                severity: 'error',
+                checks: [
+                    {
+                        pattern: /session[_-]?authenticity|session[_-]?integrity|communication[_-]?authenticity|session[_-]?validation/i,
+                        message: 'FedRAMP SC-23: Implement session authenticity controls',
+                        remediation: 'Configure session authenticity and integrity protection',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        pattern: /session[_-]?token|csrf[_-]?protection|session[_-]?hmac|session[_-]?signature/i,
+                        message: 'FedRAMP SC-23: Verify session token authenticity',
+                        remediation: 'Implement session token validation and CSRF protection',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+
             // SYSTEM AND INFORMATION INTEGRITY (SI) - Complete missing controls
             {
                 id: 'SI-01',

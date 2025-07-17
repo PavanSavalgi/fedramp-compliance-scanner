@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
   "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced reporting, cost analysis, and comprehensive metrics",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -164,6 +164,42 @@
         "title": "Generate Compliance Forecast",
         "category": "Cost Analytics",
         "icon": "$(graph)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateWorkspaceReport",
+        "title": "Generate Workspace Report",
+        "category": "Enhanced Reports",
+        "icon": "$(workspace-trusted)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateComplianceOnlyReport",
+        "title": "Generate Compliance-Only Report",
+        "category": "Enhanced Reports",
+        "icon": "$(verified-filled)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateVulnerabilityOnlyReport",
+        "title": "Generate Vulnerability-Only Report",
+        "category": "Enhanced Reports",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateCostOnlyReport",
+        "title": "Generate Cost-Only Report",
+        "category": "Enhanced Reports",
+        "icon": "$(credit-card)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateEnhancedDashboard",
+        "title": "Generate Enhanced Dashboard",
+        "category": "Enhanced Reports",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateAllReports",
+        "title": "Generate All Enhanced Reports",
+        "category": "Enhanced Reports",
+        "icon": "$(repo-sync)"
       }
     ],
     "views": {

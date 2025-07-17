@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ComplianceScanner } from './scanner';
 import { ReportGenerator } from './reportGenerator';
 import { IndividualReportGenerator } from './individualReportGenerator';
+import { EnhancedReportGenerator } from './enhancedReportGenerator';
 import { ComplianceTreeProvider } from './treeProvider';
 import { AdvancedReportingFeatures } from './advancedReportingFeatures';
 import { ComplianceStandard, FedRAMPLevel } from './types';
@@ -9,6 +10,7 @@ import { ComplianceStandard, FedRAMPLevel } from './types';
 export function activate(context: vscode.ExtensionContext): void {
 	const complianceScanner = new ComplianceScanner();
 	const reportGenerator = new ReportGenerator();
+	const enhancedReportGenerator = new EnhancedReportGenerator();
 	const individualReportGenerator = new IndividualReportGenerator(reportGenerator);
 	const advancedReporting = new AdvancedReportingFeatures();
 
@@ -428,6 +430,138 @@ ${forecast.recommendations.map(rec => `
 		}
 	});
 
+	// ENHANCED REPORTING COMMANDS (5 Report Types)
+	const generateWorkspaceReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateWorkspaceReport', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running workspace scan...');
+				const scanResult = await complianceScanner.scanWorkspace();
+				if (scanResult) {
+					const report = createComplianceReport(scanResult);
+					reportGenerator.storeReport(report);
+					await enhancedReportGenerator.generateWorkspaceReport(report);
+				}
+			} else {
+				await enhancedReportGenerator.generateWorkspaceReport(lastReport);
+			}
+			vscode.window.showInformationMessage('Workspace report generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Workspace report generation failed: ${error}`);
+		}
+	});
+
+	const generateComplianceOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComplianceOnlyReport', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running compliance scan...');
+				const scanResult = await complianceScanner.scanWorkspace();
+				if (scanResult) {
+					const report = createComplianceReport(scanResult);
+					reportGenerator.storeReport(report);
+					await enhancedReportGenerator.generateComplianceOnlyReport(report);
+				}
+			} else {
+				await enhancedReportGenerator.generateComplianceOnlyReport(lastReport);
+			}
+			vscode.window.showInformationMessage('Compliance-only report generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Compliance-only report generation failed: ${error}`);
+		}
+	});
+
+	const generateVulnerabilityOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateVulnerabilityOnlyReport', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running vulnerability scan...');
+				const scanResult = await complianceScanner.scanWorkspace();
+				if (scanResult) {
+					const report = createComplianceReport(scanResult);
+					reportGenerator.storeReport(report);
+					await enhancedReportGenerator.generateVulnerabilityOnlyReport(report);
+				}
+			} else {
+				await enhancedReportGenerator.generateVulnerabilityOnlyReport(lastReport);
+			}
+			vscode.window.showInformationMessage('Vulnerability-only report generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Vulnerability-only report generation failed: ${error}`);
+		}
+	});
+
+	const generateCostOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateCostOnlyReport', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running cost analysis scan...');
+				const scanResult = await complianceScanner.scanWorkspace();
+				if (scanResult) {
+					const report = createComplianceReport(scanResult);
+					reportGenerator.storeReport(report);
+					await enhancedReportGenerator.generateCostOnlyReport(report);
+				}
+			} else {
+				await enhancedReportGenerator.generateCostOnlyReport(lastReport);
+			}
+			vscode.window.showInformationMessage('Cost-only report generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Cost-only report generation failed: ${error}`);
+		}
+	});
+
+	const generateEnhancedDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateEnhancedDashboard', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running advanced dashboard scan...');
+				const scanResult = await complianceScanner.scanWorkspace();
+				if (scanResult) {
+					const report = createComplianceReport(scanResult);
+					reportGenerator.storeReport(report);
+					await enhancedReportGenerator.generateAdvancedDashboard(report);
+				}
+			} else {
+				await enhancedReportGenerator.generateAdvancedDashboard(lastReport);
+			}
+			vscode.window.showInformationMessage('Enhanced dashboard generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Enhanced dashboard generation failed: ${error}`);
+		}
+	});
+
+	const generateAllReportsCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateAllReports', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showInformationMessage('Running comprehensive scan for all reports...');
+				const scanResult = await complianceScanner.scanWorkspace();
+				if (scanResult) {
+					const report = createComplianceReport(scanResult);
+					reportGenerator.storeReport(report);
+					
+					// Generate all 5 report types
+					await enhancedReportGenerator.generateWorkspaceReport(report);
+					await enhancedReportGenerator.generateComplianceOnlyReport(report);
+					await enhancedReportGenerator.generateVulnerabilityOnlyReport(report);
+					await enhancedReportGenerator.generateCostOnlyReport(report);
+					await enhancedReportGenerator.generateAdvancedDashboard(report);
+				}
+			} else {
+				// Generate all 5 report types
+				await enhancedReportGenerator.generateWorkspaceReport(lastReport);
+				await enhancedReportGenerator.generateComplianceOnlyReport(lastReport);
+				await enhancedReportGenerator.generateVulnerabilityOnlyReport(lastReport);
+				await enhancedReportGenerator.generateCostOnlyReport(lastReport);
+				await enhancedReportGenerator.generateAdvancedDashboard(lastReport);
+			}
+			vscode.window.showInformationMessage('All enhanced reports generated successfully!');
+		} catch (error) {
+			vscode.window.showErrorMessage(`All reports generation failed: ${error}`);
+		}
+	});
+
 	// Register all disposables
 	context.subscriptions.push(
 		scanWorkspaceCommand,
@@ -455,7 +589,14 @@ ${forecast.recommendations.map(rec => `
 		// Cost Analysis & Comprehensive Metrics Features
 		generateCostAnalysisCommand,
 		generateComprehensiveDashboardCommand,
-		generateComplianceForecastCommand
+		generateComplianceForecastCommand,
+		// Enhanced Reporting Commands (5 Report Types)
+		generateWorkspaceReportCommand,
+		generateComplianceOnlyReportCommand,
+		generateVulnerabilityOnlyReportCommand,
+		generateCostOnlyReportCommand,
+		generateEnhancedDashboardCommand,
+		generateAllReportsCommand
 	);
 
 	// Show welcome message
