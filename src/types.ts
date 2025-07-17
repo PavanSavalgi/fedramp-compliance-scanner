@@ -4,7 +4,7 @@ export enum FedRAMPLevel {
     High = 'High'
 }
 
-export type ComplianceStandard = 'FedRAMP' | 'GDPR' | 'HIPAA' | 'DPDP' | 'PCI-DSS' | 'ISO-27001' | 'ISO-27002' | 'SOC-2' | 'NIST-CSF';
+export type ComplianceStandard = 'FedRAMP';
 
 export interface ComplianceControl {
     id: string;

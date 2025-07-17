@@ -3,6 +3,7 @@ import { ComplianceReport, ComplianceIssue } from './types';
 
 export interface DashboardMetrics {
     complianceScore: number;
+    fedRAMPComplianceScore: number;
     securityScore: number;
     trendDirection: 'up' | 'down' | 'stable';
     riskLevel: 'low' | 'medium' | 'high' | 'critical';
@@ -11,6 +12,9 @@ export interface DashboardMetrics {
     criticalIssues: number;
     resolvedIssues: number;
     newIssues: number;
+    fedRAMPLevel: 'Low' | 'Moderate' | 'High';
+    controlFamilyScores: { [family: string]: number };
+    authorizationStatus: 'ATO' | 'P-ATO' | 'In Process' | 'Not Started';
 }
 
 export interface ChartData {
@@ -115,19 +119,30 @@ export class AdvancedReportingFeatures {
             <div class="dashboard-container">
                 <!-- Header with Real-time Metrics -->
                 <header class="dashboard-header">
-                    <h1>🎯 Advanced Compliance Dashboard</h1>
+                    <h1>🎯 FedRAMP Compliance Dashboard</h1>
+                    <div class="fedramp-status">
+                        <div class="status-badge ${metrics.authorizationStatus.toLowerCase().replace(' ', '-')}">
+                            ${metrics.authorizationStatus}
+                        </div>
+                        <div class="fedrAMP-level">FedRAMP ${metrics.fedRAMPLevel} Impact</div>
+                    </div>
                     <div class="live-metrics">
-                        <div class="metric-card compliance-score">
-                            <div class="metric-value">${metrics.complianceScore}%</div>
-                            <div class="metric-label">Compliance Score</div>
+                        <div class="metric-card fedramp-score primary">
+                            <div class="metric-value">${metrics.fedRAMPComplianceScore}%</div>
+                            <div class="metric-label">FedRAMP Compliance Score</div>
                             <div class="metric-trend ${metrics.trendDirection}">
                                 ${this.getTrendIcon(metrics.trendDirection)}
                             </div>
                         </div>
+                        <div class="metric-card overall-score">
+                            <div class="metric-value">${metrics.complianceScore}%</div>
+                            <div class="metric-label">Overall Compliance</div>
+                            <div class="metric-risk ${metrics.riskLevel}">${metrics.riskLevel.toUpperCase()}</div>
+                        </div>
                         <div class="metric-card security-score">
                             <div class="metric-value">${metrics.securityScore}%</div>
                             <div class="metric-label">Security Score</div>
-                            <div class="metric-risk ${metrics.riskLevel}">${metrics.riskLevel.toUpperCase()}</div>
+                            <div class="critical-issues">${metrics.criticalIssues} Critical</div>
                         </div>
                         <div class="metric-card progress">
                             <div class="metric-value">${metrics.remedationProgress}%</div>
@@ -138,50 +153,72 @@ export class AdvancedReportingFeatures {
                         </div>
                         <div class="metric-card timeline">
                             <div class="metric-value">${metrics.timeToCompliance}</div>
-                            <div class="metric-label">Time to Compliance</div>
+                            <div class="metric-label">Time to ATO</div>
                         </div>
                     </div>
                 </header>
 
                 <!-- Main Dashboard Grid -->
                 <div class="dashboard-grid">
-                    <!-- Compliance Overview Chart -->
+                    <!-- FedRAMP Control Family Scores -->
                     <div class="dashboard-card chart-card">
-                        <h3>📊 Compliance Trend Analysis</h3>
-                        <canvas id="complianceTrendChart"></canvas>
+                        <h3>🏛️ FedRAMP Control Family Performance</h3>
+                        <canvas id="fedRAMPControlChart"></canvas>
+                        <div class="control-family-scores">
+                            ${this.generateControlFamilyScoresHTML(metrics.controlFamilyScores)}
+                        </div>
+                    </div>
+
+                    <!-- FedRAMP Authorization Progress -->
+                    <div class="dashboard-card progress-card">
+                        <h3>� FedRAMP Authorization Progress</h3>
+                        <div class="authorization-progress">
+                            <div class="ato-pathway">
+                                <div class="step ${metrics.fedRAMPComplianceScore >= 60 ? 'completed' : 'pending'}">
+                                    <span class="step-number">1</span>
+                                    <span class="step-name">Documentation</span>
+                                </div>
+                                <div class="step ${metrics.fedRAMPComplianceScore >= 75 ? 'completed' : 'pending'}">
+                                    <span class="step-number">2</span>
+                                    <span class="step-name">Security Assessment</span>
+                                </div>
+                                <div class="step ${metrics.fedRAMPComplianceScore >= 85 ? 'completed' : 'pending'}">
+                                    <span class="step-number">3</span>
+                                    <span class="step-name">P-ATO</span>
+                                </div>
+                                <div class="step ${metrics.fedRAMPComplianceScore >= 95 ? 'completed' : 'pending'}">
+                                    <span class="step-number">4</span>
+                                    <span class="step-name">ATO</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Risk Heat Map -->
                     <div class="dashboard-card heatmap-card">
-                        <h3>🔥 Risk Heat Map</h3>
+                        <h3>� FedRAMP Control Risk Heat Map</h3>
                         <div id="riskHeatMap"></div>
                     </div>
 
-                    <!-- Issue Distribution -->
+                    <!-- Issue Distribution by Control Family -->
                     <div class="dashboard-card chart-card">
-                        <h3>📈 Issue Distribution</h3>
+                        <h3>� Issues by FedRAMP Control Family</h3>
                         <canvas id="issueDistributionChart"></canvas>
                     </div>
 
-                    <!-- Control Family Performance -->
-                    <div class="dashboard-card chart-card">
-                        <h3>🛡️ Control Family Performance</h3>
-                        <canvas id="controlFamilyChart"></canvas>
-                    </div>
-
-                    <!-- Executive Summary -->
+                    <!-- FedRAMP Executive Summary -->
                     <div class="dashboard-card summary-card">
-                        <h3>👔 Executive Summary</h3>
+                        <h3>👔 FedRAMP Executive Summary</h3>
                         <div id="executiveSummary">
-                            ${this.generateExecutiveSummaryHTML(report)}
+                            ${this.generateFedRAMPExecutiveSummaryHTML(report, metrics)}
                         </div>
                     </div>
 
-                    <!-- Automated Remediation Suggestions -->
+                    <!-- FedRAMP Automated Remediation -->
                     <div class="dashboard-card remediation-card">
-                        <h3>🤖 Smart Remediation</h3>
+                        <h3>🤖 FedRAMP Smart Remediation</h3>
                         <div id="remediationSuggestions">
-                            ${this.generateRemediationSuggestionsHTML(report)}
+                            ${this.generateFedRAMPRemediationHTML(report)}
                         </div>
                     </div>
                 </div>
@@ -211,36 +248,48 @@ export class AdvancedReportingFeatures {
         const newIssues = Math.floor(totalIssues * 0.1); // Mock new issues
 
         const complianceScore = this.calculateComplianceScore(report);
+        const fedRAMPComplianceScore = this.calculateFedRAMPComplianceScore(report);
         const securityScore = this.calculateSecurityScore(report);
+        const controlFamilyScores = this.calculateControlFamilyScores(report);
+        const fedRAMPLevel = this.determineFedRAMPLevel(report);
+        const authorizationStatus = this.determineAuthorizationStatus(fedRAMPComplianceScore, criticalIssues);
         
         return {
             complianceScore,
+            fedRAMPComplianceScore,
             securityScore,
-            trendDirection: complianceScore > 75 ? 'up' : complianceScore > 50 ? 'stable' : 'down',
+            trendDirection: fedRAMPComplianceScore > 75 ? 'up' : fedRAMPComplianceScore > 50 ? 'stable' : 'down',
             riskLevel: criticalIssues > 10 ? 'critical' : criticalIssues > 5 ? 'high' : criticalIssues > 2 ? 'medium' : 'low',
             remedationProgress: Math.min(100, (resolvedIssues / totalIssues) * 100),
             timeToCompliance: this.calculateTimeToCompliance(report),
             criticalIssues,
             resolvedIssues,
-            newIssues
+            newIssues,
+            fedRAMPLevel,
+            controlFamilyScores,
+            authorizationStatus
         };
     }
 
     private generateChartData(report: ComplianceReport): ChartData {
-        const controlFamilies = this.getControlFamilies(report);
-        const familyScores = controlFamilies.map(family => {
-            const familyIssues = report.issues.filter(issue => issue.control.startsWith(family));
-            return Math.max(0, 100 - (familyIssues.length * 10));
+        const fedRAMPFamilies = this.getFedRAMPControlFamilies();
+        const familyNames = this.getFedRAMPControlFamilyNames();
+        const familyScores = fedRAMPFamilies.map(family => {
+            const familyIssues = report.issues.filter(issue => issue.control.startsWith(family + '-'));
+            const errorCount = familyIssues.filter(i => i.severity === 'error').length;
+            const warningCount = familyIssues.filter(i => i.severity === 'warning').length;
+            return Math.max(0, 100 - (errorCount * 20) - (warningCount * 10));
         });
 
         return {
-            labels: controlFamilies,
+            labels: fedRAMPFamilies.map(family => `${family} - ${familyNames[family]}`),
             datasets: [{
-                label: 'Compliance Score by Control Family',
+                label: 'FedRAMP Control Family Compliance Score',
                 data: familyScores,
                 backgroundColor: [
-                    '#4CAF50', '#2196F3', '#FF9800', '#F44336', '#9C27B0',
-                    '#00BCD4', '#795548', '#607D8B', '#FFC107', '#E91E63'
+                    '#2E7D32', '#1976D2', '#F57C00', '#D32F2F', '#7B1FA2',
+                    '#00796B', '#5D4037', '#455A64', '#F9A825', '#C2185B',
+                    '#0288D1'
                 ],
                 borderColor: ['#ffffff'],
                 fill: false
@@ -249,19 +298,28 @@ export class AdvancedReportingFeatures {
     }
 
     private generateRiskHeatMap(report: ComplianceReport): RiskHeatMapData[] {
-        const controlFamilies = this.getControlFamilies(report);
+        const fedRAMPFamilies = this.getFedRAMPControlFamilies();
+        const familyNames = this.getFedRAMPControlFamilyNames();
         
-        return controlFamilies.map(family => {
-            const familyIssues = report.issues.filter(issue => issue.control.startsWith(family));
+        return fedRAMPFamilies.map(family => {
+            const familyIssues = report.issues.filter(issue => issue.control.startsWith(family + '-'));
             const criticalCount = familyIssues.filter(i => i.severity === 'error').length;
-            const riskScore = Math.min(100, criticalCount * 15);
+            const warningCount = familyIssues.filter(i => i.severity === 'warning').length;
+            
+            // FedRAMP-specific risk scoring
+            let riskScore = 0;
+            if (family === 'AC' || family === 'SC' || family === 'AU') { // Critical families
+                riskScore = Math.min(100, (criticalCount * 25) + (warningCount * 10));
+            } else {
+                riskScore = Math.min(100, (criticalCount * 20) + (warningCount * 8));
+            }
             
             return {
-                control: family,
+                control: `${family} - ${familyNames[family]}`,
                 riskScore,
-                impact: Math.min(10, criticalCount + 3),
-                likelihood: Math.min(10, familyIssues.length / 2),
-                category: this.getCategoryFromFamily(family),
+                impact: Math.min(10, criticalCount + Math.floor(warningCount / 2) + 3),
+                likelihood: Math.min(10, Math.floor(familyIssues.length / 2) + 2),
+                category: this.getFedRAMPCategoryFromFamily(family),
                 remedationEffort: criticalCount > 3 ? 'high' : criticalCount > 1 ? 'medium' : 'low'
             };
         });
@@ -374,7 +432,7 @@ export class AdvancedReportingFeatures {
         });
 
         vscode.window.showInformationMessage(
-            `📅 Report export scheduled: ${config.frequency} ${config.format.toUpperCase()} reports to ${config.recipients.length} recipients`
+            `📅 Report export scheduled: ${config.frequency} ${config.format.toUpperCase()} reports to ${config.recipients.join(', ')}`
         );
 
         return scheduleId;
@@ -857,6 +915,102 @@ export class AdvancedReportingFeatures {
         `;
     }
 
+    // FedRAMP-Specific HTML Generation Methods
+    private generateControlFamilyScoresHTML(controlFamilyScores: { [family: string]: number }): string {
+        const familyNames = this.getFedRAMPControlFamilyNames();
+        
+        return `
+        <div class="control-family-grid">
+            ${Object.entries(controlFamilyScores).map(([family, score]) => {
+                const status = score >= 90 ? 'excellent' : score >= 75 ? 'good' : score >= 60 ? 'warning' : 'critical';
+                return `
+                    <div class="family-score-card ${status}">
+                        <div class="family-code">${family}</div>
+                        <div class="family-name">${familyNames[family] || family}</div>
+                        <div class="family-score">${score}%</div>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${score}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+        `;
+    }
+
+    private generateFedRAMPExecutiveSummaryHTML(report: ComplianceReport, metrics: DashboardMetrics): string {
+        const criticalControls = report.issues.filter(i => 
+            i.severity === 'error' && (i.control.startsWith('AC-') || i.control.startsWith('SC-') || i.control.startsWith('AU-'))
+        ).length;
+
+        return `
+        <div class="fedramp-executive-summary">
+            <div class="authorization-status">
+                <div class="status-indicator ${metrics.authorizationStatus.toLowerCase().replace(' ', '-')}">
+                    <span class="status-icon">🏛️</span>
+                    <span class="status-text">${metrics.authorizationStatus}</span>
+                </div>
+            </div>
+            
+            <div class="summary-metrics">
+                <div class="metric primary">
+                    <span class="value">${metrics.fedRAMPComplianceScore}%</span>
+                    <span class="label">FedRAMP Compliance</span>
+                </div>
+                <div class="metric">
+                    <span class="value">${metrics.fedRAMPLevel}</span>
+                    <span class="label">Impact Level</span>
+                </div>
+                <div class="metric">
+                    <span class="value">${criticalControls}</span>
+                    <span class="label">Critical Controls</span>
+                </div>
+            </div>
+
+            <div class="key-findings">
+                <h4>Key FedRAMP Findings:</h4>
+                <ul>
+                    <li>System requires ${metrics.fedRAMPLevel} impact level authorization</li>
+                    <li>${metrics.criticalIssues} critical control deficiencies identified</li>
+                    <li>Current authorization status: ${metrics.authorizationStatus}</li>
+                    <li>Estimated time to ATO: ${metrics.timeToCompliance}</li>
+                </ul>
+            </div>
+        </div>
+        `;
+    }
+
+    private generateFedRAMPRemediationHTML(report: ComplianceReport): string {
+        const fedRAMPPriorities = [
+            { control: 'AC-2', title: 'Account Management', effort: 'Medium', impact: 'Critical', automation: '🔄 Semi-Auto' },
+            { control: 'SC-7', title: 'Boundary Protection', effort: 'High', impact: 'Critical', automation: '✅ Automated' },
+            { control: 'AU-2', title: 'Audit Events', effort: 'Low', impact: 'High', automation: '✅ Automated' },
+            { control: 'IA-2', title: 'Multi-Factor Authentication', effort: 'Medium', impact: 'Critical', automation: '🔄 Semi-Auto' }
+        ];
+
+        return `
+        <div class="fedramp-remediation-widget">
+            ${fedRAMPPriorities.map(item => {
+                const hasIssue = report.issues.some(issue => issue.control.startsWith(item.control));
+                return `
+                    <div class="remediation-item ${hasIssue ? 'has-issue' : 'compliant'}">
+                        <div class="control-info">
+                            <span class="control-id">${item.control}</span>
+                            <span class="control-title">${item.title}</span>
+                            ${hasIssue ? '<span class="issue-indicator">⚠️</span>' : '<span class="compliant-indicator">✅</span>'}
+                        </div>
+                        <div class="remediation-meta">
+                            <span class="effort">${item.effort}</span>
+                            <span class="impact">${item.impact}</span>
+                            <span class="automation">${item.automation}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+        `;
+    }
+
     private getDashboardCSS(): string {
         return `
         * {
@@ -1144,6 +1298,261 @@ export class AdvancedReportingFeatures {
         .risk-7 { background: #F44336; color: white; }
         .risk-8 { background: #E91E63; color: white; }
         .risk-9 { background: #9C27B0; color: white; }
+
+        /* FedRAMP-Specific Styles */
+        .fedramp-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status-badge.ato { background: #4CAF50; color: white; }
+        .status-badge.p-ato { background: #FF9800; color: white; }
+        .status-badge.in-process { background: #2196F3; color: white; }
+        .status-badge.not-started { background: #757575; color: white; }
+
+        .fedramp-level {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .metric-card.fedramp-score.primary {
+            border: 3px solid #1976D2;
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(13, 71, 161, 0.1));
+        }
+
+        .metric-card.fedramp-score .metric-value {
+            color: #1976D2;
+            font-size: 3.5em;
+        }
+
+        .critical-issues {
+            color: #F44336;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .control-family-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .family-score-card {
+            background: var(--vscode-sidebar-background);
+            border: 1px solid var(--vscode-widget-border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .family-score-card.excellent { border-left: 4px solid #4CAF50; }
+        .family-score-card.good { border-left: 4px solid #8BC34A; }
+        .family-score-card.warning { border-left: 4px solid #FF9800; }
+        .family-score-card.critical { border-left: 4px solid #F44336; }
+
+        .family-code {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #1976D2;
+        }
+
+        .family-name {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin: 5px 0;
+        }
+
+        .family-score {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .score-bar {
+            background: var(--vscode-widget-border);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #F44336 0%, #FF9800 50%, #4CAF50 100%);
+            transition: width 0.3s ease;
+        }
+
+        .authorization-progress {
+            margin: 20px 0;
+        }
+
+        .ato-pathway {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .ato-pathway::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--vscode-widget-border);
+            z-index: 1;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--vscode-editor-background);
+            padding: 10px;
+            border-radius: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step.completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .step.pending {
+            background: var(--vscode-widget-border);
+            color: var(--vscode-foreground);
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: currentColor;
+            color: var(--vscode-editor-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .step-name {
+            font-size: 0.8em;
+            text-align: center;
+        }
+
+        .fedramp-executive-summary {
+            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .authorization-status {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+        }
+
+        .status-icon {
+            font-size: 1.2em;
+        }
+
+        .fedramp-remediation-widget .remediation-item {
+            background: var(--vscode-sidebar-background);
+            border: 1px solid var(--vscode-widget-border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .remediation-item.has-issue {
+            border-left: 4px solid #F44336;
+        }
+
+        .remediation-item.compliant {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .control-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .control-id {
+            background: #1976D2;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .control-title {
+            font-weight: bold;
+            flex-grow: 1;
+        }
+
+        .issue-indicator {
+            color: #F44336;
+        }
+
+        .compliant-indicator {
+            color: #4CAF50;
+        }
+
+        .remediation-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .remediation-meta span {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .effort {
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+
+        .impact {
+            background: var(--vscode-errorForeground);
+            color: white;
+        }
+
+        .automation {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
         `;
     }
 
@@ -1323,5 +1732,124 @@ export class AdvancedReportingFeatures {
             'CM': 'Configuration'
         };
         return categoryMap[family] || 'General';
+    }
+
+    // FedRAMP-Specific Helper Methods
+    private calculateFedRAMPComplianceScore(report: ComplianceReport): number {
+        if (!report.issues.length) {
+            return 100;
+        }
+
+        // FedRAMP control families with their weights
+        const fedRAMPFamilies = {
+            'AC': 15, // Access Control - Critical
+            'AU': 12, // Audit and Accountability
+            'SC': 15, // System and Communications Protection - Critical
+            'SI': 12, // System and Information Integrity
+            'IA': 10, // Identification and Authentication
+            'CM': 8,  // Configuration Management
+            'CP': 6,  // Contingency Planning
+            'IR': 6,  // Incident Response
+            'RA': 6,  // Risk Assessment
+            'SA': 5,  // System and Services Acquisition
+            'CA': 5   // Security Assessment and Authorization
+        };
+
+        let totalWeight = 0;
+        let achievedScore = 0;
+
+        Object.entries(fedRAMPFamilies).forEach(([family, weight]) => {
+            totalWeight += weight;
+            const familyIssues = report.issues.filter(issue => issue.control.startsWith(family + '-'));
+            const errorCount = familyIssues.filter(i => i.severity === 'error').length;
+            const warningCount = familyIssues.filter(i => i.severity === 'warning').length;
+            
+            // Calculate family score (0-100)
+            const familyScore = Math.max(0, 100 - (errorCount * 20) - (warningCount * 10));
+            achievedScore += (familyScore * weight) / 100;
+        });
+
+        return Math.round((achievedScore / totalWeight) * 100);
+    }
+
+    private calculateControlFamilyScores(report: ComplianceReport): { [family: string]: number } {
+        const fedRAMPFamilies = ['AC', 'AU', 'SC', 'SI', 'IA', 'CM', 'CP', 'IR', 'RA', 'SA', 'CA'];
+        const scores: { [family: string]: number } = {};
+
+        fedRAMPFamilies.forEach(family => {
+            const familyIssues = report.issues.filter(issue => issue.control.startsWith(family + '-'));
+            const errorCount = familyIssues.filter(i => i.severity === 'error').length;
+            const warningCount = familyIssues.filter(i => i.severity === 'warning').length;
+            
+            scores[family] = Math.max(0, 100 - (errorCount * 20) - (warningCount * 10));
+        });
+
+        return scores;
+    }
+
+    private determineFedRAMPLevel(report: ComplianceReport): 'Low' | 'Moderate' | 'High' {
+        // Determine based on control complexity and security requirements
+        const criticalControls = report.issues.filter(issue => 
+            issue.control.match(/SC-7|SC-8|SC-28|AC-2|AC-3|AU-2|IA-2|SI-4/));
+        
+        const errorCount = report.issues.filter(i => i.severity === 'error').length;
+        
+        if (criticalControls.length > 20 || errorCount > 15) {
+            return 'High';
+        }
+        if (criticalControls.length > 10 || errorCount > 8) {
+            return 'Moderate';
+        }
+        return 'Low';
+    }
+
+    private determineAuthorizationStatus(complianceScore: number, criticalIssues: number): 'ATO' | 'P-ATO' | 'In Process' | 'Not Started' {
+        if (complianceScore >= 95 && criticalIssues === 0) {
+            return 'ATO'; // Authority to Operate
+        }
+        if (complianceScore >= 85 && criticalIssues <= 2) {
+            return 'P-ATO'; // Provisional Authority to Operate
+        }
+        if (complianceScore >= 60) {
+            return 'In Process';
+        }
+        return 'Not Started';
+    }
+
+    private getFedRAMPControlFamilies(): string[] {
+        return ['AC', 'AU', 'SC', 'SI', 'IA', 'CM', 'CP', 'IR', 'RA', 'SA', 'CA'];
+    }
+
+    private getFedRAMPControlFamilyNames(): { [key: string]: string } {
+        return {
+            'AC': 'Access Control',
+            'AU': 'Audit and Accountability', 
+            'SC': 'System and Communications Protection',
+            'SI': 'System and Information Integrity',
+            'IA': 'Identification and Authentication',
+            'CM': 'Configuration Management',
+            'CP': 'Contingency Planning',
+            'IR': 'Incident Response',
+            'RA': 'Risk Assessment',
+            'SA': 'System and Services Acquisition',
+            'CA': 'Security Assessment and Authorization'
+        };
+    }
+
+    private getFedRAMPCategoryFromFamily(family: string): string {
+        const categories: { [key: string]: string } = {
+            'AC': 'Identity & Access',
+            'AU': 'Audit & Accountability',
+            'SC': 'Security Controls',
+            'SI': 'System Integrity',
+            'IA': 'Authentication',
+            'CM': 'Configuration',
+            'CP': 'Contingency',
+            'IR': 'Incident Response',
+            'RA': 'Risk Management',
+            'SA': 'Acquisition',
+            'CA': 'Assessment'
+        };
+        return categories[family] || 'Other';
     }
 }

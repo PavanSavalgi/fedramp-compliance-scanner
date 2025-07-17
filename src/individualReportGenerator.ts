@@ -68,15 +68,7 @@ export class IndividualReportGenerator {
 
     private isIssueForStandard(control: string, standard: ComplianceStandard): boolean {
         const standardPrefixes: { [key in ComplianceStandard]: string[] } = {
-            'FedRAMP': ['AC-', 'AU-', 'CM-', 'IA-', 'SC-', 'SI-'],
-            'GDPR': ['GDPR-'],
-            'HIPAA': ['HIPAA-'],
-            'DPDP': ['DPDP-'],
-            'PCI-DSS': ['PCI-'],
-            'ISO-27001': ['ISO-A-'],
-            'ISO-27002': ['ISO27002-'],
-            'SOC-2': ['SOC2-'],
-            'NIST-CSF': ['NIST-']
+            'FedRAMP': ['AC-', 'AU-', 'CM-', 'IA-', 'SC-', 'SI-']
         };
 
         const prefixes = standardPrefixes[standard] || [];
@@ -85,45 +77,21 @@ export class IndividualReportGenerator {
 
     private getStandardDisplayName(standard: ComplianceStandard): string {
         const names: { [key in ComplianceStandard]: string } = {
-            'FedRAMP': 'FedRAMP',
-            'GDPR': 'GDPR',
-            'HIPAA': 'HIPAA',
-            'DPDP': 'DPDP Act',
-            'PCI-DSS': 'PCI DSS',
-            'ISO-27001': 'ISO 27001',
-            'ISO-27002': 'ISO 27002',
-            'SOC-2': 'SOC 2',
-            'NIST-CSF': 'NIST CSF'
+            'FedRAMP': 'FedRAMP'
         };
         return names[standard];
     }
 
     private getStandardColor(standard: ComplianceStandard): string {
         const colors: { [key in ComplianceStandard]: string } = {
-            'FedRAMP': '#1e40af',
-            'GDPR': '#7c3aed',
-            'HIPAA': '#059669',
-            'DPDP': '#ea580c',
-            'PCI-DSS': '#dc2626',
-            'ISO-27001': '#0891b2',
-            'ISO-27002': '#0284c7',
-            'SOC-2': '#9333ea',
-            'NIST-CSF': '#065f46'
+            'FedRAMP': '#1e40af'
         };
         return colors[standard];
     }
 
     private getStandardDescription(standard: ComplianceStandard): string {
         const descriptions: { [key in ComplianceStandard]: string } = {
-            'FedRAMP': 'Federal Risk and Authorization Management Program - US government cloud security standard',
-            'GDPR': 'General Data Protection Regulation - EU data protection and privacy regulation',
-            'HIPAA': 'Health Insurance Portability and Accountability Act - US healthcare privacy regulation',
-            'DPDP': 'Digital Personal Data Protection Act - India\'s comprehensive data protection law',
-            'PCI-DSS': 'Payment Card Industry Data Security Standard - Global payment card security requirements',
-            'ISO-27001': 'International standard for information security management systems',
-            'ISO-27002': 'Code of practice for information security controls',
-            'SOC-2': 'Service Organization Control 2 - Security and availability controls for service organizations',
-            'NIST-CSF': 'NIST Cybersecurity Framework - US framework for managing cybersecurity risk'
+            'FedRAMP': 'Federal Risk and Authorization Management Program - US government cloud security standard'
         };
         return descriptions[standard];
     }

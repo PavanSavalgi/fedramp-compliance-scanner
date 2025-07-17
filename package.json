@@ -1,7 +1,7 @@
 {
   "name": "fedramp-compliance-scanner",
-  "displayName": "Compliance Scanner",
-  "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for multi-standard compliance (FedRAMP, GDPR, HIPAA, PCI-DSS, ISO-27001, SOC-2, NIST-CSF) and security vulnerabilities with AI-enhanced reporting and intelligent caching",
+  "displayName": "FedRAMP Compliance Scanner",
+  "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced reporting and intelligent caching",
   "version": "1.7.0",
   "publisher": "fedramp-compliance",
   "author": {
@@ -79,122 +79,26 @@
         "category": "Compliance"
       },
       {
-        "command": "fedramp-compliance-scanner.selectComplianceStandards",
-        "title": "Select Compliance Standards",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp.showDashboard",
-        "title": "Show Compliance Dashboard",
+        "command": "fedramp-compliance-scanner.showDashboard",
+        "title": "Show FedRAMP Compliance Dashboard",
         "category": "Compliance",
         "icon": "$(dashboard)"
       },
       {
-        "command": "fedramp.toggleRealTimeMonitoring",
+        "command": "fedramp-compliance-scanner.toggleRealTimeMonitoring",
         "title": "Toggle Real-time Monitoring",
         "category": "Compliance",
         "icon": "$(eye)"
       },
       {
-        "command": "fedramp.showRemediations",
-        "title": "Show Available Remediations",
-        "category": "Compliance",
-        "icon": "$(tools)"
-      },
-      {
-        "command": "fedramp.exportReport",
-        "title": "Export Compliance Report",
+        "command": "fedramp-compliance-scanner.exportReport",
+        "title": "Export FedRAMP Compliance Report",
         "category": "Compliance",
         "icon": "$(save)"
       },
       {
-        "command": "fedramp-compliance-scanner.generateIndividualReports",
-        "title": "Generate Individual Compliance Reports",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateGDPRReport",
-        "title": "Generate GDPR Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateHIPAAReport",
-        "title": "Generate HIPAA Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generatePCIDSSReport",
-        "title": "Generate PCI-DSS Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateISO27001Report",
-        "title": "Generate ISO-27001 Compliance Report",
-        "category": "Compliance"
-      },
-      {
         "command": "fedramp-compliance-scanner.generateFedRAMPOnlyReport",
         "title": "Generate FedRAMP Compliance Only Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateDPDPReport",
-        "title": "Generate DPDP Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateISO27002Report",
-        "title": "Generate ISO-27002 Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateSOC2Report",
-        "title": "Generate SOC-2 Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateNISTCSFReport",
-        "title": "Generate NIST-CSF Compliance Report",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanGDPR",
-        "title": "Scan for GDPR Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportGDPR",
-        "title": "Generate GDPR Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanHIPAA",
-        "title": "Scan for HIPAA Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportHIPAA",
-        "title": "Generate HIPAA Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanPCIDSS",
-        "title": "Scan for PCI-DSS Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportPCIDSS",
-        "title": "Generate PCI-DSS Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanISO27001",
-        "title": "Scan for ISO-27001 Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportISO27001",
-        "title": "Generate ISO-27001 Report (from last scan)",
         "category": "Compliance"
       },
       {
@@ -208,233 +112,140 @@
         "category": "Compliance"
       },
       {
-        "command": "fedramp-compliance-scanner.scanDPDP",
-        "title": "Scan for DPDP Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportDPDP",
-        "title": "Generate DPDP Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanISO27002",
-        "title": "Scan for ISO-27002 Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportISO27002",
-        "title": "Generate ISO-27002 Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanSOC2",
-        "title": "Scan for SOC-2 Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportSOC2",
-        "title": "Generate SOC-2 Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.scanNISTCSF",
-        "title": "Scan for NIST-CSF Compliance",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.reportNISTCSF",
-        "title": "Generate NIST-CSF Report (from last scan)",
-        "category": "Compliance"
-      },
-      {
-        "command": "fedramp-compliance-scanner.refreshCompliance",
-        "title": "Refresh",
+        "command": "fedramp-compliance-scanner.refresh",
+        "title": "Refresh Compliance Data",
+        "category": "Compliance",
         "icon": "$(refresh)"
       },
       {
         "command": "fedramp-compliance-scanner.generateAdvancedDashboard",
-        "title": "🎯 Generate Advanced Dashboard",
-        "category": "Advanced Reports"
+        "title": "Generate Advanced FedRAMP Dashboard",
+        "category": "Advanced Reporting"
       },
       {
         "command": "fedramp-compliance-scanner.generateExecutiveSummary",
-        "title": "👔 Generate Executive Summary",
-        "category": "Advanced Reports"
-      },
-      {
-        "command": "fedramp-compliance-scanner.generateRemediationPlan",
-        "title": "🔧 Generate Automated Remediation Plan",
-        "category": "Advanced Reports"
+        "title": "Generate Executive Summary",
+        "category": "Advanced Reporting"
       },
       {
         "command": "fedramp-compliance-scanner.generateTrendAnalysis",
-        "title": "📈 Generate Trend Analysis",
-        "category": "Advanced Reports"
+        "title": "Generate Trend Analysis",
+        "category": "Advanced Reporting"
       },
       {
         "command": "fedramp-compliance-scanner.generateInteractiveReport",
-        "title": "🚀 Generate Interactive Report",
-        "category": "Advanced Reports"
+        "title": "Generate Interactive Report",
+        "category": "Advanced Reporting"
       },
       {
         "command": "fedramp-compliance-scanner.scheduleReports",
-        "title": "⏰ Schedule Automated Reports",
-        "category": "Advanced Reports"
+        "title": "Schedule Automatic Reports",
+        "category": "Advanced Reporting"
       },
       {
         "command": "fedramp-compliance-scanner.exportAdvancedReport",
-        "title": "📤 Export Advanced Report",
-        "category": "Advanced Reports"
+        "title": "Export Advanced Report",
+        "category": "Advanced Reporting"
       }
     ],
     "views": {
       "explorer": [
         {
-          "id": "fedrampCompliance",
+          "id": "fedRAMPCompliance",
           "name": "FedRAMP Compliance",
-          "when": "workspaceFolderCount > 0"
+          "when": "fedRAMPComplianceActive"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "fedRAMPCompliance",
+          "title": "FedRAMP Compliance",
+          "icon": "$(shield)"
         }
       ]
     },
     "menus": {
-      "commandPalette": [
-        {
-          "command": "fedramp-compliance-scanner.scanWorkspace",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.scanFile",
-          "when": "editorIsOpen"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateComplianceReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateSecurityReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.setComplianceLevel",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.selectComplianceStandards",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateIndividualReports",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateGDPRReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateHIPAAReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generatePCIDSSReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateISO27001Report",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateFedRAMPOnlyReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateDPDPReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateISO27002Report",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateSOC2Report",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateNISTCSFReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.securityScan",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp.showDashboard",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp.toggleRealTimeMonitoring",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp.showRemediations",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp.exportReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateAdvancedDashboard",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateExecutiveSummary",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateRemediationPlan",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateTrendAnalysis",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.generateInteractiveReport",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.scheduleReports",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "fedramp-compliance-scanner.exportAdvancedReport",
-          "when": "workspaceFolderCount > 0"
-        }
-      ],
       "view/title": [
         {
-          "command": "fedramp-compliance-scanner.refreshCompliance",
-          "when": "view == fedrampCompliance",
+          "command": "fedramp-compliance-scanner.refresh",
+          "when": "view == fedRAMPCompliance",
+          "group": "navigation"
+        },
+        {
+          "command": "fedramp-compliance-scanner.showDashboard",
+          "when": "view == fedRAMPCompliance",
           "group": "navigation"
         }
       ],
-      "explorer/context": [
+      "commandPalette": [
         {
-          "command": "fedramp-compliance-scanner.scanFile",
-          "when": "resourceExtname =~ /\\.(tf|yaml|yml|json|hcl)$/",
-          "group": "fedramp"
+          "command": "fedramp-compliance-scanner.scanWorkspace"
+        },
+        {
+          "command": "fedramp-compliance-scanner.scanFile"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateReport"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateComplianceReport"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateSecurityReport"
+        },
+        {
+          "command": "fedramp-compliance-scanner.setComplianceLevel"
+        },
+        {
+          "command": "fedramp-compliance-scanner.showDashboard"
+        },
+        {
+          "command": "fedramp-compliance-scanner.toggleRealTimeMonitoring"
+        },
+        {
+          "command": "fedramp-compliance-scanner.exportReport"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateFedRAMPOnlyReport"
+        },
+        {
+          "command": "fedramp-compliance-scanner.scanFedRAMP"
+        },
+        {
+          "command": "fedramp-compliance-scanner.reportFedRAMP"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateAdvancedDashboard"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateExecutiveSummary"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateTrendAnalysis"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateInteractiveReport"
+        },
+        {
+          "command": "fedramp-compliance-scanner.scheduleReports"
+        },
+        {
+          "command": "fedramp-compliance-scanner.exportAdvancedReport"
         }
       ]
     },
     "configuration": {
+      "type": "object",
       "title": "FedRAMP Compliance Scanner",
       "properties": {
-        "fedrampCompliance.level": {
+        "fedrampCompliance.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable FedRAMP compliance scanning"
+        },
+        "fedrampCompliance.complianceLevel": {
           "type": "string",
           "enum": [
             "Low",
@@ -442,56 +253,24 @@
             "High"
           ],
           "default": "Moderate",
-          "description": "FedRAMP compliance level to check against"
+          "description": "FedRAMP compliance level (Low, Moderate, High)"
         },
-        "fedrampCompliance.complianceStandards": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "FedRAMP",
-              "GDPR",
-              "HIPAA",
-              "DPDP",
-              "PCI-DSS",
-              "ISO-27001",
-              "ISO-27002",
-              "SOC-2",
-              "NIST-CSF"
-            ]
-          },
-          "default": ["FedRAMP"],
-          "description": "Compliance standards to check against"
-        },
-        "fedrampCompliance.enableAutoScan": {
+        "fedrampCompliance.autoScanOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "Automatically scan files when they are opened or saved"
+          "description": "Automatically scan files when saved"
         },
-        "fedrampCompliance.enableSecurityScan": {
+        "fedrampCompliance.realTimeMonitoring": {
           "type": "boolean",
-          "default": true,
-          "description": "Enable security vulnerability scanning along with compliance checks"
+          "default": false,
+          "description": "Enable real-time compliance monitoring"
         },
-        "fedrampCompliance.includePatterns": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "**/*.tf",
-            "**/*.yaml",
-            "**/*.yml",
-            "**/*.json",
-            "**/*.hcl",
-            "**/*.md",
-            "**/*.txt",
-            "**/*.sh",
-            "**/*.py",
-            "**/*.js",
-            "**/*.ts"
-          ],
-          "description": "File patterns to include in compliance scanning"
+        "fedrampCompliance.maxConcurrentScans": {
+          "type": "number",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 16,
+          "description": "Maximum number of concurrent scans"
         },
         "fedrampCompliance.excludePatterns": {
           "type": "array",
@@ -500,75 +279,44 @@
           },
           "default": [
             "**/node_modules/**",
-            "**/vendor/**",
+            "**/dist/**",
+            "**/build/**",
             "**/.git/**"
           ],
-          "description": "File patterns to exclude from compliance scanning"
+          "description": "File patterns to exclude from scanning"
         },
-        "fedrampCompliance.reportHistory": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          },
-          "default": [],
-          "description": "History of compliance reports for trend analysis (automatically managed)"
+        "fedrampCompliance.cacheEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable caching to improve scan performance"
         },
-        "fedrampCompliance.batchSize": {
+        "fedrampCompliance.cacheTTL": {
           "type": "number",
-          "default": 10,
-          "minimum": 1,
-          "maximum": 100,
-          "description": "Number of files to process in parallel (performance tuning)"
+          "default": 3600,
+          "minimum": 60,
+          "maximum": 86400,
+          "description": "Cache time-to-live in seconds"
         },
-        "fedrampCompliance.enableCaching": {
+        "fedrampCompliance.enableDiagnostics": {
           "type": "boolean",
           "default": true,
-          "description": "Enable result caching to improve performance on unchanged files"
+          "description": "Show compliance issues as VS Code diagnostics"
         },
-        "fedrampCompliance.cacheSize": {
-          "type": "number",
-          "default": 1000,
-          "minimum": 100,
-          "maximum": 10000,
-          "description": "Maximum number of cached file results"
-        },
-        "fedrampCompliance.progressReporting": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show progress reports for large scans (>50 files)"
-        },
-        "fedrampCompliance.realTimeMonitoring": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable real-time monitoring of file changes for instant compliance feedback"
-        },
-        "fedrampCompliance.autoRemediation": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable auto-remediation suggestions and code actions for compliance violations"
-        },
-        "fedrampCompliance.executiveDashboard": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable executive dashboard with visual compliance analytics"
-        },
-        "fedrampCompliance.exportFormat": {
+        "fedrampCompliance.reportFormat": {
           "type": "string",
           "enum": [
-            "PDF",
-            "HTML",
-            "JSON",
-            "CSV"
+            "html",
+            "json",
+            "csv",
+            "pdf"
           ],
-          "default": "PDF",
-          "description": "Default format for exporting compliance reports"
+          "default": "html",
+          "description": "Default format for generated reports"
         },
-        "fedrampCompliance.dashboardRefreshInterval": {
-          "type": "number",
-          "default": 30,
-          "minimum": 10,
-          "maximum": 300,
-          "description": "Dashboard refresh interval in seconds"
+        "fedrampCompliance.enableAdvancedReporting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable advanced reporting features (charts, dashboards, trends)"
         }
       }
     }
@@ -578,18 +326,27 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
+    "lint": "eslint src --ext ts",
     "test": "vscode-test"
   },
   "devDependencies": {
     "@types/vscode": "^1.102.0",
-    "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.31.1",
-    "@typescript-eslint/parser": "^8.31.1",
-    "eslint": "^9.25.1",
-    "typescript": "^5.8.3",
-    "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^9.10.0",
+    "typescript": "^5.6.2",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "d3": "^7.8.5",
+    "canvas": "^2.11.2",
+    "jsdom": "^22.1.0",
+    "pdfkit": "^0.13.0",
+    "csv-stringify": "^6.4.0",
+    "fast-glob": "^3.3.0",
+    "crypto": "^1.0.1"
   }
 }
