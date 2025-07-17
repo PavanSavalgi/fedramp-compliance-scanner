@@ -802,6 +802,149 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Advanced Reporting Features Commands
+	const generateAdvancedDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateAdvancedDashboard', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('🔍 Please run a compliance scan first to generate an advanced dashboard.');
+				return;
+			}
+			
+			await reportGenerator.generateAdvancedReport(lastReport);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Advanced dashboard generation failed: ${error}`);
+		}
+	});
+
+	const generateExecutiveSummaryCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateExecutiveSummary', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('🔍 Please run a compliance scan first to generate executive summary.');
+				return;
+			}
+			
+			await reportGenerator.generateReportWithFeatures(lastReport, { executiveSummary: true });
+		} catch (error) {
+			vscode.window.showErrorMessage(`Executive summary generation failed: ${error}`);
+		}
+	});
+
+	const generateRemediationPlanCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateRemediationPlan', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('🔍 Please run a compliance scan first to generate remediation plan.');
+				return;
+			}
+			
+			await reportGenerator.generateReportWithFeatures(lastReport, { remediationPlan: true });
+		} catch (error) {
+			vscode.window.showErrorMessage(`Remediation plan generation failed: ${error}`);
+		}
+	});
+
+	const generateTrendAnalysisCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateTrendAnalysis', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('🔍 Please run a compliance scan first to generate trend analysis.');
+				return;
+			}
+			
+			await reportGenerator.generateReportWithFeatures(lastReport, { trendAnalysis: true });
+		} catch (error) {
+			vscode.window.showErrorMessage(`Trend analysis generation failed: ${error}`);
+		}
+	});
+
+	const generateInteractiveReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateInteractiveReport', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('🔍 Please run a compliance scan first to generate interactive report.');
+				return;
+			}
+			
+			await reportGenerator.generateReportWithFeatures(lastReport, { 
+				dashboard: true,
+				executiveSummary: true,
+				remediationPlan: true,
+				trendAnalysis: true,
+				riskHeatMap: true
+			});
+		} catch (error) {
+			vscode.window.showErrorMessage(`Interactive report generation failed: ${error}`);
+		}
+	});
+
+	const scheduleReportsCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scheduleReports', async () => {
+		try {
+			const frequency = await vscode.window.showQuickPick(
+				['Daily', 'Weekly', 'Monthly'],
+				{ placeHolder: 'Select report frequency' }
+			);
+			
+			if (!frequency) {
+				return;
+			}
+
+			const format = await vscode.window.showQuickPick(
+				['HTML', 'PDF', 'JSON', 'Excel'],
+				{ placeHolder: 'Select export format' }
+			);
+			
+			if (!format) {
+				return;
+			}
+
+			const config = {
+				frequency: frequency.toLowerCase() as 'daily' | 'weekly' | 'monthly',
+				format: format.toLowerCase() as 'html' | 'pdf' | 'json' | 'xlsx',
+				recipients: ['compliance@company.com'],
+				includeCharts: true
+			};
+
+			await reportGenerator.scheduleReportExport(config);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Report scheduling failed: ${error}`);
+		}
+	});
+
+	const exportAdvancedReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.exportAdvancedReport', async () => {
+		try {
+			const lastReport = reportGenerator.getLastReport();
+			if (!lastReport) {
+				vscode.window.showWarningMessage('🔍 Please run a compliance scan first to export advanced report.');
+				return;
+			}
+
+			const format = await vscode.window.showQuickPick(
+				['HTML with Dashboard', 'PDF Executive', 'Excel Detailed', 'JSON Data'],
+				{ placeHolder: 'Select advanced export format' }
+			);
+			
+			if (!format) {
+				return;
+			}
+
+			const options = {
+				format: format.includes('HTML') ? 'html' : 
+						format.includes('PDF') ? 'pdf' : 
+						format.includes('Excel') ? 'xlsx' : 'json',
+				includeCharts: true,
+				includeDashboard: format.includes('HTML'),
+				includeExecutiveSummary: format.includes('PDF') || format.includes('HTML'),
+				includeRemediationPlan: true
+			};
+
+			await reportGenerator.exportAdvancedReport(lastReport, options);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Advanced report export failed: ${error}`);
+		}
+	});
+
 	// Register all disposables
 	context.subscriptions.push(
 		scanWorkspaceCommand,
@@ -847,7 +990,15 @@ export function activate(context: vscode.ExtensionContext) {
 		scanSOC2Command,
 		reportSOC2Command,
 		scanNISTCSFCommand,
-		reportNISTCSFCommand
+		reportNISTCSFCommand,
+		// Advanced Reporting Features
+		generateAdvancedDashboardCommand,
+		generateExecutiveSummaryCommand,
+		generateRemediationPlanCommand,
+		generateTrendAnalysisCommand,
+		generateInteractiveReportCommand,
+		scheduleReportsCommand,
+		exportAdvancedReportCommand
 	);
 
 	// Show welcome message

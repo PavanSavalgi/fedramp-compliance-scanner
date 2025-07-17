@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "Compliance Scanner",
   "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for multi-standard compliance (FedRAMP, GDPR, HIPAA, PCI-DSS, ISO-27001, SOC-2, NIST-CSF) and security vulnerabilities with AI-enhanced reporting and intelligent caching",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -251,6 +251,41 @@
         "command": "fedramp-compliance-scanner.refreshCompliance",
         "title": "Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateAdvancedDashboard",
+        "title": "🎯 Generate Advanced Dashboard",
+        "category": "Advanced Reports"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateExecutiveSummary",
+        "title": "👔 Generate Executive Summary",
+        "category": "Advanced Reports"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateRemediationPlan",
+        "title": "🔧 Generate Automated Remediation Plan",
+        "category": "Advanced Reports"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateTrendAnalysis",
+        "title": "📈 Generate Trend Analysis",
+        "category": "Advanced Reports"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateInteractiveReport",
+        "title": "🚀 Generate Interactive Report",
+        "category": "Advanced Reports"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scheduleReports",
+        "title": "⏰ Schedule Automated Reports",
+        "category": "Advanced Reports"
+      },
+      {
+        "command": "fedramp-compliance-scanner.exportAdvancedReport",
+        "title": "📤 Export Advanced Report",
+        "category": "Advanced Reports"
       }
     ],
     "views": {
@@ -350,6 +385,34 @@
         },
         {
           "command": "fedramp.exportReport",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateAdvancedDashboard",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateExecutiveSummary",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateRemediationPlan",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateTrendAnalysis",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.generateInteractiveReport",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.scheduleReports",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "fedramp-compliance-scanner.exportAdvancedReport",
           "when": "workspaceFolderCount > 0"
         }
       ],

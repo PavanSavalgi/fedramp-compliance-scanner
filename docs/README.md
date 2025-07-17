@@ -1,43 +1,65 @@
-# Documentation Structure
+# FedRAMP Compliance Scanner Documentation Hub
 
-This document outlines the organized documentation structure for the FedRAMP Compliance Scanner extension.
+Welcome to the comprehensive documentation for the FedRAMP Compliance Scanner VS Code Extension v1.7.0 with Advanced Reporting Features.
 
-## 📁 Folder Structure
+## 🚀 Quick Start Links
 
-```
-fedramp-compliance-scanner/
-├── README.md                          # Main project documentation
-├── CHANGELOG.md                       # Version history and changes
-├── LICENSE                           # MIT License
-├── package.json                      # Extension manifest
-│
-├── 📁 docs/                          # Documentation hub
-│   ├── README_MARKETPLACE.md         # VS Code Marketplace description
-│   ├── README_NEW.md                 # Alternative README versions
-│   │
-│   ├── 📁 releases/                  # Release documentation
-│   │   ├── RELEASE_NOTES_v1.0.0.md  # v1.0.0 release notes
-│   │   ├── RELEASE_NOTES_v1.2.0.md  # v1.2.0 release notes
-│   │   ├── RELEASE_NOTES_v1.3.0.md  # v1.3.0 release notes
-│   │   ├── RELEASE_NOTES_v1.4.0.md  # v1.4.0 release notes
-│   │   └── RELEASE_NOTES_v1.4.1.md  # v1.4.1 release notes
-│   │
-│   ├── 📁 guides/                    # User guides and tutorials
-│   │   ├── INSTALLATION.md          # Installation and setup guide
-│   │   └── PERFORMANCE_GUIDE.md     # Performance optimization guide
-│   │
-│   ├── 📁 technical/                 # Technical documentation
-│   │   ├── OPTIMIZATION_REPORT_v1.4.1.md     # Performance optimization analysis
-│   │   ├── OPTIMIZATION_SUMMARY.md            # Optimization summary
-│   │   ├── BUG_FIX_REPORT.md                 # Bug fix documentation
-│   │   ├── PROJECT_SUMMARY.md                # Project overview
-│   │   └── DOCUMENTATION_UPDATE_SUMMARY.md   # Documentation changes
-│   │
-│   └── 📁 development/               # Development documentation
-│       ├── vsc-extension-quickstart.md       # VS Code extension development guide
-│       ├── VERSION_1.0.0_SUMMARY.md          # Version 1.0.0 development summary
-│       ├── SEPARATE_REPORTING_FEATURE.md     # Feature development notes
-│       └── SAMPLE_FILES_SUMMARY.md           # Sample files documentation
+- **[Installation Guide](user-guide/INSTALLATION.md)** - Get started quickly
+- **[Performance Guide](user-guide/PERFORMANCE_GUIDE.md)** - Optimize your scanning
+- **[Advanced Reporting Features](reports/ADVANCED_REPORTING_FEATURES.md)** - New dashboard and analytics
+- **[Executive Summary](executive/EXECUTIVE_SUMMARY_FEDRAMP.md)** - High-level overview
+
+## 📁 Documentation Structure
+
+### � **Executive Documentation**
+- **[📋 Executive Brief](executive/EXECUTIVE_BRIEF_ONE_PAGE.md)** - One-page project overview
+- **[📊 Executive Summary](executive/EXECUTIVE_SUMMARY_FEDRAMP.md)** - Comprehensive project summary
+
+### 📖 **User Guides**
+- **[🔧 Installation Guide](user-guide/INSTALLATION.md)** - Setup and installation instructions
+- **[⚡ Performance Guide](user-guide/PERFORMANCE_GUIDE.md)** - Optimization and best practices
+- **[📁 Sample Files Guide](user-guide/SAMPLE_FILES_SUMMARY.md)** - Using test samples
+
+### 🛡️ **Compliance Documentation**
+- **[📋 FedRAMP Coverage Report](compliance/FEDRAMP_COMPLIANCE_COVERAGE_REPORT.md)** - Compliance coverage analysis
+- **[🔍 Technical Implementation](compliance/FEDRAMP_TECHNICAL_IMPLEMENTATION.md)** - Technical compliance details
+- **[📈 Enhanced Analysis](compliance/ENHANCED_FEDRAMP_ANALYSIS.md)** - Advanced compliance insights
+- **[🎯 Extension Capabilities](compliance/EXTENSION_CAPABILITY_REPORT.md)** - Feature compliance mapping
+
+### 📊 **Reports and Analytics**
+- **[🚀 Advanced Reporting Features](reports/ADVANCED_REPORTING_FEATURES.md)** - New v1.7.0 dashboard features
+- **[� New Features Summary](reports/NEW_FEATURES_SUMMARY.md)** - Latest feature additions
+- **[⚡ Reporting Optimization Complete](reports/REPORTING_OPTIMIZATION_COMPLETE_v1.6.1.md)** - Performance improvements
+- **[📋 Reporting Optimization Summary](reports/REPORTING_OPTIMIZATION_SUMMARY.md)** - Optimization overview
+- **[🎯 Report Optimization Plan](reports/REPORT_OPTIMIZATION_PLAN_v1.6.1.md)** - Implementation roadmap
+
+### 🔧 **Technical Documentation**
+- **[📊 Optimization Report](technical/OPTIMIZATION_REPORT_v1.4.1.md)** - Performance analysis
+- **[📈 Optimization Summary](technical/OPTIMIZATION_SUMMARY.md)** - Technical improvements
+- **[🐛 Bug Fix Report](technical/BUG_FIX_REPORT.md)** - Issue resolutions
+- **[📋 Project Summary](technical/PROJECT_SUMMARY.md)** - Technical overview
+- **[📝 Documentation Updates](technical/DOCUMENTATION_UPDATE_SUMMARY.md)** - Documentation changes
+- **[� Codebase Analysis](technical/CODEBASE_ANALYSIS_REPORT.md)** - Code quality analysis
+
+### 🛠️ **Development Documentation**
+- **[📋 Version 1.0.0 Summary](development/VERSION_1.0.0_SUMMARY.md)** - Initial release details
+- **[📊 Separate Reporting Feature](development/SEPARATE_REPORTING_FEATURE.md)** - Feature development
+- **[🎯 Feature Implementation Roadmap](development/FEATURE_IMPLEMENTATION_ROADMAP.md)** - Development planning
+- **[📈 Implementation Action Plan](development/IMPLEMENTATION_ACTION_PLAN.md)** - Development strategy
+
+### 📋 **Release Notes**
+- **[🚀 v1.6.0 Release](release-notes/RELEASE_NOTES_v1.6.0.md)** - Latest stable release
+- **[⚡ v1.5.3 Release](release-notes/RELEASE_NOTES_v1.5.3.md)** - Performance improvements
+- **[🔧 v1.5.0 Release](release-notes/RELEASE_NOTES_v1.5.0.md)** - Feature enhancements
+- **[📊 v1.4.1 Release](release-notes/RELEASE_NOTES_v1.4.1.md)** - Optimization updates
+- **[🎯 v1.4.0 Release](release-notes/RELEASE_NOTES_v1.4.0.md)** - Major feature release
+- **[📋 v1.3.0 Release](release-notes/RELEASE_NOTES_v1.3.0.md)** - Core improvements
+- **[🚀 v1.2.0 Release](release-notes/RELEASE_NOTES_v1.2.0.md)** - Enhanced scanning
+- **[📈 v1.0.0 Release](release-notes/RELEASE_NOTES_v1.0.0.md)** - Initial release
+- **[📦 Package Summaries](release-notes/PACKAGE_SUMMARY_v1.6.0.md)** - Build information
+
+### 📚 **Archive**
+- Historical documentation and development notes
 │
 ├── 📁 samples/                       # Sample files for testing
 │   ├── README.md                     # Sample files overview
