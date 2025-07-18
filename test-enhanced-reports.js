@@ -56,12 +56,8 @@ async function testEnhancedReports() {
         console.log('3. Testing Vulnerability Only Report...');
         await reportGenerator.generateVulnerabilityOnlyReport(sampleReport);
         console.log('✅ Vulnerability Only Report generated successfully');
-        // Test 4: Cost Only Report
-        console.log('4. Testing Cost Only Report...');
-        await reportGenerator.generateCostOnlyReport(sampleReport);
-        console.log('✅ Cost Only Report generated successfully');
-        // Test 5: Advanced Dashboard
-        console.log('5. Testing Advanced Dashboard...');
+        // Test 4: Advanced Dashboard
+        console.log('4. Testing Advanced Dashboard...');
         await reportGenerator.generateAdvancedDashboard(sampleReport);
         console.log('✅ Advanced Dashboard generated successfully');
         console.log('\n🎉 All enhanced reports tested successfully!');

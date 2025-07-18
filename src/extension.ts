@@ -1,615 +1,84 @@
 import * as vscode from 'vscode';
-import { ComplianceScanner } from './scanner';
-import { ReportGenerator } from './reportGenerator';
-import { IndividualReportGenerator } from './individualReportGenerator';
-import { EnhancedReportGenerator } from './enhancedReportGenerator';
-import { ComplianceTreeProvider } from './treeProvider';
-import { AdvancedReportingFeatures } from './advancedReportingFeatures';
-import { ComplianceStandard, FedRAMPLevel } from './types';
+import { LiveComplianceScanner } from './liveComplianceScanner';
+import { SimpleReportGenerator } from './simpleReportGenerator';
 
-export function activate(context: vscode.ExtensionContext): void {
-	const complianceScanner = new ComplianceScanner();
-	const reportGenerator = new ReportGenerator();
-	const enhancedReportGenerator = new EnhancedReportGenerator();
-	const individualReportGenerator = new IndividualReportGenerator(reportGenerator);
-	const advancedReporting = new AdvancedReportingFeatures();
+let liveScanner: LiveComplianceScanner;
+let reportGenerator: SimpleReportGenerator;
 
-	// Tree view setup
-	const treeDataProvider = new ComplianceTreeProvider();
-	const treeView = vscode.window.createTreeView('fedRAMPCompliance', {
-		treeDataProvider: treeDataProvider,
-		showCollapseAll: true
-	});
+export function activate(context: vscode.ExtensionContext) {
+    console.log('🚀 FedRAMP Compliance Scanner activated');
 
-	// Helper function to convert ScanResult to ComplianceReport
-	function createComplianceReport(scanResult: any): any {
-		return {
-			...scanResult,
-			timestamp: new Date(),
-			level: 'High' as FedRAMPLevel,
-			standards: ['FedRAMP'] as ComplianceStandard[],
-			totalFiles: scanResult.file ? 1 : 0,
-			totalIssues: scanResult.issues.length,
-			scannedFiles: scanResult.file ? [scanResult.file] : [],
-			summary: {
-				errors: scanResult.issues.filter((i: any) => i.severity === 'error').length,
-				warnings: scanResult.issues.filter((i: any) => i.severity === 'warning').length,
-				info: scanResult.issues.filter((i: any) => i.severity === 'info').length,
-				controlsCovered: scanResult.summary?.controlsCovered || 0,
-				totalControls: scanResult.summary?.totalControls || 0
-			}
-		};
-	}
+    // Initialize the live scanner
+    liveScanner = new LiveComplianceScanner();
+    reportGenerator = new SimpleReportGenerator(liveScanner);
 
-	// CORE COMMANDS
-	const scanWorkspaceCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanWorkspace', async () => {
-		try {
-			vscode.window.showInformationMessage('Starting FedRAMP compliance scan...');
-			const scanResult = await complianceScanner.scanWorkspace();
-			if (scanResult) {
-				const report = createComplianceReport(scanResult);
-				reportGenerator.generateReport(report);
-				vscode.window.showInformationMessage('FedRAMP compliance scan completed.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Scan failed: ${error}`);
-		}
-	});
+    // Register commands
+    const commands = [
+        // Core scanning commands
+        vscode.commands.registerCommand('fedramp.scanWorkspace', async () => {
+            await liveScanner.scanWorkspace();
+        }),
 
-	const scanFileCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanFile', async () => {
-		try {
-			const activeEditor = vscode.window.activeTextEditor;
-			if (!activeEditor) {
-				vscode.window.showWarningMessage('No active file to scan.');
-				return;
-			}
+        vscode.commands.registerCommand('fedramp.scanCurrentFile', async () => {
+            await liveScanner.scanCurrentFile();
+        }),
 
-			vscode.window.showInformationMessage('Scanning current file for FedRAMP compliance...');
-			const scanResult = await complianceScanner.scanFile(activeEditor.document.uri.fsPath);
-			if (scanResult) {
-				const report = createComplianceReport(scanResult);
-				reportGenerator.generateReport(report);
-				vscode.window.showInformationMessage('File scan completed.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`File scan failed: ${error}`);
-		}
-	});
+        vscode.commands.registerCommand('fedramp.toggleLiveScanning', () => {
+            liveScanner.toggleScanning();
+        }),
 
-	const generateReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				reportGenerator.generateReport(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Report generation failed: ${error}`);
-		}
-	});
+        // Reporting command
+        vscode.commands.registerCommand('fedramp.generateReport', async () => {
+            await reportGenerator.generateReport();
+        }),
 
-	const generateComplianceReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComplianceReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				reportGenerator.generateComplianceReport(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Compliance report generation failed: ${error}`);
-		}
-	});
+        // Quick actions
+        vscode.commands.registerCommand('fedramp.showProblems', () => {
+            vscode.commands.executeCommand('workbench.panel.markers.view.focus');
+        }),
 
-	const generateSecurityReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateSecurityReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				reportGenerator.generateSecurityReport(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Security report generation failed: ${error}`);
-		}
-	});
+        vscode.commands.registerCommand('fedramp.clearProblems', () => {
+            liveScanner['diagnosticCollection'].clear();
+            vscode.window.showInformationMessage('Compliance problems cleared');
+        })
+    ];
 
-	const setComplianceLevelCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.setComplianceLevel', async () => {
-		try {
-			const level = await vscode.window.showQuickPick(['Low', 'Moderate', 'High'], {
-				placeHolder: 'Select FedRAMP compliance level'
-			});
-			
-			if (level) {
-				const config = vscode.workspace.getConfiguration('fedrampCompliance');
-				await config.update('complianceLevel', level, vscode.ConfigurationTarget.Workspace);
-				vscode.window.showInformationMessage(`FedRAMP compliance level set to: ${level}`);
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to set compliance level: ${error}`);
-		}
-	});
+    // Add all commands to subscriptions
+    context.subscriptions.push(...commands);
+    context.subscriptions.push(liveScanner);
 
-	const securityScanCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.securityScan', async () => {
-		try {
-			vscode.window.showInformationMessage('Starting security vulnerability scan...');
-			const scanResult = await complianceScanner.scanWorkspace();
-			if (scanResult) {
-				const report = createComplianceReport(scanResult);
-				reportGenerator.generateSecurityReport(report);
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Security scan failed: ${error}`);
-		}
-	});
+    // Show welcome message
+    vscode.window.showInformationMessage(
+        '🛡️ FedRAMP Compliance Scanner is ready! Live scanning is enabled.',
+        'Scan Workspace',
+        'Generate Report'
+    ).then(selection => {
+        switch (selection) {
+            case 'Scan Workspace':
+                vscode.commands.executeCommand('fedramp.scanWorkspace');
+                break;
+            case 'Generate Report':
+                vscode.commands.executeCommand('fedramp.generateReport');
+                break;
+        }
+    });
 
-	const refreshComplianceCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.refresh', async () => {
-		try {
-			vscode.window.showInformationMessage('Refreshing FedRAMP compliance data...');
-			const scanResult = await complianceScanner.scanWorkspace();
-			if (scanResult) {
-				vscode.window.showInformationMessage('Compliance data refreshed successfully.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Refresh failed: ${error}`);
-		}
-	});
-
-	const showDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.showDashboard', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				await advancedReporting.generateInteractiveDashboard(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Dashboard generation failed: ${error}`);
-		}
-	});
-
-	const toggleRealTimeMonitoringCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.toggleRealTimeMonitoring', async () => {
-		try {
-			vscode.window.showInformationMessage('Real-time monitoring feature is in development.');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to toggle monitoring: ${error}`);
-		}
-	});
-
-	const exportReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.exportReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-				return;
-			}
-
-			const format = await vscode.window.showQuickPick(['HTML', 'JSON'], {
-				placeHolder: 'Select export format'
-			});
-
-			if (format) {
-				if (format === 'HTML') {
-					await advancedReporting.generateInteractiveDashboard(lastReport);
-				} else {
-					await reportGenerator.generateReport(lastReport);
-				}
-				vscode.window.showInformationMessage(`Report exported as ${format}`);
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Export failed: ${error}`);
-		}
-	});
-
-	// FEDRAMP-SPECIFIC COMMANDS
-	const scanFedRAMPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scanFedRAMP', async () => {
-		try {
-			vscode.window.showInformationMessage('Starting FedRAMP compliance scan...');
-			const scanResult = await complianceScanner.scanWorkspaceWithStandards(['FedRAMP'], undefined, false);
-			if (scanResult) {
-				const report = createComplianceReport(scanResult);
-				reportGenerator.storeReport(report);
-				reportGenerator.generateReport(report);
-				vscode.window.showInformationMessage('FedRAMP scan completed.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`FedRAMP scan failed: ${error}`);
-		}
-	});
-
-	const reportFedRAMPCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.reportFedRAMP', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'FedRAMP');
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run "Scan for FedRAMP Compliance" first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`FedRAMP report generation failed: ${error}`);
-		}
-	});
-
-	const generateFedRAMPOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateFedRAMPOnlyReport', async () => {
-		try {
-			let lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running FedRAMP compliance scan...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					lastReport = createComplianceReport(scanResult);
-					if (lastReport) {
-						reportGenerator.storeReport(lastReport);
-					}
-				}
-			}
-
-			if (lastReport) {
-				await individualReportGenerator.generateStandardSpecificReport(lastReport, 'FedRAMP');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`FedRAMP report generation failed: ${error}`);
-		}
-	});
-
-	// ADVANCED REPORTING COMMANDS
-	const generateAdvancedDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateAdvancedDashboard', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				await advancedReporting.generateInteractiveDashboard(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Advanced dashboard generation failed: ${error}`);
-		}
-	});
-
-	const generateExecutiveSummaryCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateExecutiveSummary', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				await advancedReporting.generateExecutiveSummary(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Executive summary generation failed: ${error}`);
-		}
-	});
-
-	const generateTrendAnalysisCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateTrendAnalysis', async () => {
-		try {
-			vscode.window.showInformationMessage('Trend analysis requires multiple scan reports over time (feature in development).');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Trend analysis generation failed: ${error}`);
-		}
-	});
-
-	const generateInteractiveReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateInteractiveReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (lastReport) {
-				await advancedReporting.generateInteractiveDashboard(lastReport);
-			} else {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Interactive report generation failed: ${error}`);
-		}
-	});
-
-	const scheduleReportsCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.scheduleReports', async () => {
-		try {
-			const frequency = await vscode.window.showQuickPick(['Daily', 'Weekly', 'Monthly'], {
-				placeHolder: 'Select report frequency'
-			});
-			
-			if (frequency) {
-				vscode.window.showInformationMessage(`Reports will be scheduled to run ${frequency.toLowerCase()} (feature in development)`);
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Report scheduling failed: ${error}`);
-		}
-	});
-
-	const exportAdvancedReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.exportAdvancedReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-				return;
-			}
-
-			const format = await vscode.window.showQuickPick(
-				['HTML Dashboard', 'JSON Data Export'], {
-				placeHolder: 'Select advanced export format'
-			});
-
-			if (format) {
-				if (format === 'HTML Dashboard') {
-					await advancedReporting.generateInteractiveDashboard(lastReport);
-				} else {
-					await reportGenerator.generateReport(lastReport);
-				}
-				vscode.window.showInformationMessage(`Advanced report exported as ${format}`);
-			}
-		} catch (error) {
-			vscode.window.showErrorMessage(`Advanced report export failed: ${error}`);
-		}
-	});
-
-	// COST ANALYSIS & COMPREHENSIVE METRICS COMMANDS
-	const generateCostAnalysisCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateCostAnalysis', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-				return;
-			}
-
-			vscode.window.showInformationMessage('Generating infrastructure cost analysis...');
-			const costReport = await advancedReporting.generateCostAnalysisReport(lastReport);
-			
-			// Display cost report in a new document
-			const doc = await vscode.workspace.openTextDocument({
-				content: costReport,
-				language: 'markdown'
-			});
-			await vscode.window.showTextDocument(doc);
-			
-			vscode.window.showInformationMessage('Infrastructure cost analysis completed!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Cost analysis failed: ${error}`);
-		}
-	});
-
-	const generateComprehensiveDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComprehensiveDashboard', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-				return;
-			}
-
-			vscode.window.showInformationMessage('Generating comprehensive analytics dashboard...');
-			await advancedReporting.generateComprehensiveAnalyticsDashboard(lastReport);
-		} catch (error) {
-			vscode.window.showErrorMessage(`Comprehensive dashboard generation failed: ${error}`);
-		}
-	});
-
-	const generateComplianceForecastCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComplianceForecast', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showWarningMessage('No scan data found. Please run a scan first.');
-				return;
-			}
-
-			vscode.window.showInformationMessage('Generating compliance forecast...');
-			const forecast = await advancedReporting.generateComplianceForecast(lastReport);
-			
-			const forecastReport = `
-# 🔮 FedRAMP Compliance Forecast
-
-## Time to Compliance: ${forecast.timeToCompliance}
-
-## 📊 12-Month Cost Projection
-${forecast.costProjection.map((cost, index) => `Month ${index + 1}: $${cost.toLocaleString()}`).join('\n')}
-
-## 🎯 Key Milestones
-${forecast.milestones.map(milestone => `
-**${milestone.milestone}**
-- Date: ${milestone.date}
-- Expected Cost: $${milestone.expectedCost.toLocaleString()}
-- Risk Reduction: ${milestone.riskReduction}%
-- Controls: ${milestone.controlsCovered.join(', ')}
-`).join('\n')}
-
-## 🚀 Priority Recommendations
-${forecast.recommendations.map(rec => `
-**${rec.action}** (${rec.priority.toUpperCase()})
-- Cost Impact: ${rec.costImpact < 0 ? 'Savings' : 'Investment'} $${Math.abs(rec.costImpact).toLocaleString()}
-- Timeframe: ${rec.timeframe}
-- Expected ROI: ${rec.expectedROI}%
-`).join('\n')}
-			`;
-
-			const doc = await vscode.workspace.openTextDocument({
-				content: forecastReport,
-				language: 'markdown'
-			});
-			await vscode.window.showTextDocument(doc);
-			
-			vscode.window.showInformationMessage('Compliance forecast generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Forecast generation failed: ${error}`);
-		}
-	});
-
-	// ENHANCED REPORTING COMMANDS (5 Report Types)
-	const generateWorkspaceReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateWorkspaceReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running workspace scan...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					const report = createComplianceReport(scanResult);
-					reportGenerator.storeReport(report);
-					await enhancedReportGenerator.generateWorkspaceReport(report);
-				}
-			} else {
-				await enhancedReportGenerator.generateWorkspaceReport(lastReport);
-			}
-			vscode.window.showInformationMessage('Workspace report generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Workspace report generation failed: ${error}`);
-		}
-	});
-
-	const generateComplianceOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateComplianceOnlyReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running compliance scan...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					const report = createComplianceReport(scanResult);
-					reportGenerator.storeReport(report);
-					await enhancedReportGenerator.generateComplianceOnlyReport(report);
-				}
-			} else {
-				await enhancedReportGenerator.generateComplianceOnlyReport(lastReport);
-			}
-			vscode.window.showInformationMessage('Compliance-only report generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Compliance-only report generation failed: ${error}`);
-		}
-	});
-
-	const generateVulnerabilityOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateVulnerabilityOnlyReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running vulnerability scan...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					const report = createComplianceReport(scanResult);
-					reportGenerator.storeReport(report);
-					await enhancedReportGenerator.generateVulnerabilityOnlyReport(report);
-				}
-			} else {
-				await enhancedReportGenerator.generateVulnerabilityOnlyReport(lastReport);
-			}
-			vscode.window.showInformationMessage('Vulnerability-only report generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Vulnerability-only report generation failed: ${error}`);
-		}
-	});
-
-	const generateCostOnlyReportCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateCostOnlyReport', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running cost analysis scan...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					const report = createComplianceReport(scanResult);
-					reportGenerator.storeReport(report);
-					await enhancedReportGenerator.generateCostOnlyReport(report);
-				}
-			} else {
-				await enhancedReportGenerator.generateCostOnlyReport(lastReport);
-			}
-			vscode.window.showInformationMessage('Cost-only report generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Cost-only report generation failed: ${error}`);
-		}
-	});
-
-	const generateEnhancedDashboardCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateEnhancedDashboard', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running advanced dashboard scan...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					const report = createComplianceReport(scanResult);
-					reportGenerator.storeReport(report);
-					await enhancedReportGenerator.generateAdvancedDashboard(report);
-				}
-			} else {
-				await enhancedReportGenerator.generateAdvancedDashboard(lastReport);
-			}
-			vscode.window.showInformationMessage('Enhanced dashboard generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`Enhanced dashboard generation failed: ${error}`);
-		}
-	});
-
-	const generateAllReportsCommand = vscode.commands.registerCommand('fedramp-compliance-scanner.generateAllReports', async () => {
-		try {
-			const lastReport = reportGenerator.getLastReport();
-			if (!lastReport) {
-				vscode.window.showInformationMessage('Running comprehensive scan for all reports...');
-				const scanResult = await complianceScanner.scanWorkspace();
-				if (scanResult) {
-					const report = createComplianceReport(scanResult);
-					reportGenerator.storeReport(report);
-					
-					// Generate all 5 report types
-					await enhancedReportGenerator.generateWorkspaceReport(report);
-					await enhancedReportGenerator.generateComplianceOnlyReport(report);
-					await enhancedReportGenerator.generateVulnerabilityOnlyReport(report);
-					await enhancedReportGenerator.generateCostOnlyReport(report);
-					await enhancedReportGenerator.generateAdvancedDashboard(report);
-				}
-			} else {
-				// Generate all 5 report types
-				await enhancedReportGenerator.generateWorkspaceReport(lastReport);
-				await enhancedReportGenerator.generateComplianceOnlyReport(lastReport);
-				await enhancedReportGenerator.generateVulnerabilityOnlyReport(lastReport);
-				await enhancedReportGenerator.generateCostOnlyReport(lastReport);
-				await enhancedReportGenerator.generateAdvancedDashboard(lastReport);
-			}
-			vscode.window.showInformationMessage('All enhanced reports generated successfully!');
-		} catch (error) {
-			vscode.window.showErrorMessage(`All reports generation failed: ${error}`);
-		}
-	});
-
-	// Register all disposables
-	context.subscriptions.push(
-		scanWorkspaceCommand,
-		scanFileCommand,
-		generateReportCommand,
-		generateComplianceReportCommand,
-		generateSecurityReportCommand,
-		setComplianceLevelCommand,
-		securityScanCommand,
-		refreshComplianceCommand,
-		showDashboardCommand,
-		toggleRealTimeMonitoringCommand,
-		exportReportCommand,
-		treeView,
-		generateFedRAMPOnlyReportCommand,
-		scanFedRAMPCommand,
-		reportFedRAMPCommand,
-		// Advanced Reporting Features
-		generateAdvancedDashboardCommand,
-		generateExecutiveSummaryCommand,
-		generateTrendAnalysisCommand,
-		generateInteractiveReportCommand,
-		scheduleReportsCommand,
-		exportAdvancedReportCommand,
-		// Cost Analysis & Comprehensive Metrics Features
-		generateCostAnalysisCommand,
-		generateComprehensiveDashboardCommand,
-		generateComplianceForecastCommand,
-		// Enhanced Reporting Commands (5 Report Types)
-		generateWorkspaceReportCommand,
-		generateComplianceOnlyReportCommand,
-		generateVulnerabilityOnlyReportCommand,
-		generateCostOnlyReportCommand,
-		generateEnhancedDashboardCommand,
-		generateAllReportsCommand
-	);
-
-	// Show welcome message
-	vscode.window.showInformationMessage(
-		'FedRAMP Compliance Scanner is ready! Use the Command Palette to start scanning.',
-		'Scan Workspace'
-	).then(selection => {
-		if (selection === 'Scan Workspace') {
-			vscode.commands.executeCommand('fedramp-compliance-scanner.scanWorkspace');
-		}
-	});
+    // Start with initial workspace scan if enabled
+    const config = vscode.workspace.getConfiguration('fedrampCompliance');
+    const autoScan = config.get('autoScanOnActivation', true);
+    
+    if (autoScan) {
+        // Delay initial scan to allow workspace to fully load
+        setTimeout(() => {
+            liveScanner.scanWorkspace();
+        }, 2000);
+    }
 }
 
 export function deactivate(): void {
-	// Cleanup code here
+    console.log('👋 FedRAMP Compliance Scanner deactivated');
+    
+    if (liveScanner) {
+        liveScanner.dispose();
+    }
 }

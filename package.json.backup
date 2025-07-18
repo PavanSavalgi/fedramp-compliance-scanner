@@ -1,8 +1,8 @@
 {
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
-  "description": "VS Code extension for real-time FedRAMP compliance scanning with live tracking and Problems panel integration",
-  "version": "2.0.0",
+  "description": "High-performance VS Code extension for scanning Infrastructure as Code and Git repositories for FedRAMP compliance and security vulnerabilities with AI-enhanced reporting and comprehensive metrics",
+  "version": "1.9.2",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -44,40 +44,138 @@
   "contributes": {
     "commands": [
       {
-        "command": "fedramp.scanWorkspace",
-        "title": "Scan Workspace",
-        "category": "FedRAMP Compliance",
-        "icon": "$(search)"
+        "command": "fedramp-compliance-scanner.scanWorkspace",
+        "title": "Scan Workspace for FedRAMP Compliance & Security",
+        "category": "Compliance"
       },
       {
-        "command": "fedramp.scanCurrentFile",
-        "title": "Scan Current File",
-        "category": "FedRAMP Compliance",
-        "icon": "$(file)"
+        "command": "fedramp-compliance-scanner.scanFile",
+        "title": "Scan Current File for FedRAMP Compliance & Security",
+        "category": "Compliance"
       },
       {
-        "command": "fedramp.toggleLiveScanning",
-        "title": "Toggle Live Scanning",
-        "category": "FedRAMP Compliance",
+        "command": "fedramp-compliance-scanner.securityScan",
+        "title": "Security Vulnerability Scan Only",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateReport",
+        "title": "Generate FedRAMP Compliance Report",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateComplianceReport",
+        "title": "Generate Compliance Report Only",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateSecurityReport",
+        "title": "Generate Security Vulnerability Report Only",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.setComplianceLevel",
+        "title": "Set FedRAMP Compliance Level",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.showDashboard",
+        "title": "Show FedRAMP Compliance Dashboard",
+        "category": "Compliance",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.toggleRealTimeMonitoring",
+        "title": "Toggle Real-time Monitoring",
+        "category": "Compliance",
         "icon": "$(eye)"
       },
       {
-        "command": "fedramp.generateReport",
-        "title": "Generate Compliance Report",
-        "category": "FedRAMP Compliance",
-        "icon": "$(report)"
+        "command": "fedramp-compliance-scanner.exportReport",
+        "title": "Export FedRAMP Compliance Report",
+        "category": "Compliance",
+        "icon": "$(save)"
       },
       {
-        "command": "fedramp.showProblems",
-        "title": "Show Problems Panel",
-        "category": "FedRAMP Compliance",
-        "icon": "$(warning)"
+        "command": "fedramp-compliance-scanner.generateFedRAMPOnlyReport",
+        "title": "Generate FedRAMP Compliance Only Report",
+        "category": "Compliance"
       },
       {
-        "command": "fedramp.clearProblems",
-        "title": "Clear Problems",
-        "category": "FedRAMP Compliance",
-        "icon": "$(clear-all)"
+        "command": "fedramp-compliance-scanner.scanFedRAMP",
+        "title": "Scan for FedRAMP Compliance",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.reportFedRAMP",
+        "title": "Generate FedRAMP Report (from last scan)",
+        "category": "Compliance"
+      },
+      {
+        "command": "fedramp-compliance-scanner.refresh",
+        "title": "Refresh Compliance Data",
+        "category": "Compliance",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateAdvancedDashboard",
+        "title": "Generate Advanced FedRAMP Dashboard",
+        "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateExecutiveSummary",
+        "title": "Generate Executive Summary",
+        "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateTrendAnalysis",
+        "title": "Generate Trend Analysis",
+        "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateInteractiveReport",
+        "title": "Generate Interactive Report",
+        "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.scheduleReports",
+        "title": "Schedule Automatic Reports",
+        "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.exportAdvancedReport",
+        "title": "Export Advanced Report",
+        "category": "Advanced Reporting"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateWorkspaceReport",
+        "title": "Generate Workspace Report",
+        "category": "Enhanced Reports",
+        "icon": "$(workspace-trusted)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateComplianceOnlyReport",
+        "title": "Generate Compliance-Only Report",
+        "category": "Enhanced Reports",
+        "icon": "$(verified-filled)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateVulnerabilityOnlyReport",
+        "title": "Generate Vulnerability-Only Report",
+        "category": "Enhanced Reports",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateEnhancedDashboard",
+        "title": "Generate Enhanced Dashboard",
+        "category": "Enhanced Reports",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "fedramp-compliance-scanner.generateAllReports",
+        "title": "Generate All Enhanced Reports",
+        "category": "Enhanced Reports",
+        "icon": "$(repo-sync)"
       }
     ],
     "views": {

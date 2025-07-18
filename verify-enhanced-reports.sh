@@ -37,7 +37,6 @@ commands=(
     "generateWorkspaceReport"
     "generateComplianceOnlyReport"
     "generateVulnerabilityOnlyReport"
-    "generateCostOnlyReport"
     "generateEnhancedDashboard"
     "generateAllReports"
 )
@@ -79,7 +78,6 @@ echo -e "\n📊 Checking Scoring System:"
 scoring_features=(
     "calculateReportScore"
     "calculateVulnerabilityMetrics"
-    "calculateCostMetrics"
     "calculateComplianceMetrics"
 )
 
@@ -97,7 +95,6 @@ report_types=(
     "generateWorkspaceReport"
     "generateComplianceOnlyReport"
     "generateVulnerabilityOnlyReport"
-    "generateCostOnlyReport"
     "generateAdvancedDashboard"
 )
 
@@ -111,10 +108,10 @@ done
 
 # Final summary
 echo -e "\n🎯 Enhancement Summary:"
-echo "✅ 5 distinct report types implemented"
+echo "✅ 4 distinct report types implemented"
 echo "✅ Comprehensive scoring system with A-F grades"
 echo "✅ Risk level assessment (Low/Medium/High/Critical)"
-echo "✅ Cost analysis with ROI calculations"
+echo "✅ Vulnerability analysis with severity tracking"
 echo "✅ Interactive dashboard with navigation"
 echo "✅ Export functionality (PDF/Excel)"
 echo "✅ Action items with priority levels"
@@ -122,6 +119,6 @@ echo "✅ Historical trend analysis"
 
 echo -e "\n🚀 Enhanced Reporting System Status: READY"
 echo "📚 See ENHANCED-REPORTING-GUIDE.md for usage instructions"
-echo "🎮 Use VS Code Command Palette to access all 5 report types"
+echo "🎮 Use VS Code Command Palette to access all 4 report types"
 
 exit 0
