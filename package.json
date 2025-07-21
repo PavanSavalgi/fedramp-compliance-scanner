@@ -1,8 +1,8 @@
 {
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
-  "description": "VS Code extension for real-time FedRAMP compliance scanning with live cloud infrastructure monitoring and Problems panel integration",
-  "version": "2.7.0",
+  "description": "VS Code extension for real-time FedRAMP compliance scanning with intelligent false positive elimination, advanced smart credential detection, comprehensive Low/Moderate/High impact level coverage, Material UI design, and context-aware security pattern recognition for HTTP, network, and encryption configurations",
+  "version": "2.12.2",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -108,6 +108,12 @@
         "title": "Cloud Connection Settings",
         "category": "FedRAMP Cloud",
         "icon": "$(settings-gear)"
+      },
+      {
+        "command": "fedramp.analyticsDashboard",
+        "title": "Open Analytics Dashboard",
+        "category": "FedRAMP Analytics",
+        "icon": "$(graph-line)"
       }
     ],
     "views": {
@@ -342,10 +348,16 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@aws-sdk/client-acm": "^3.848.0",
+    "@aws-sdk/client-api-gateway": "^3.848.0",
     "@aws-sdk/client-cloudtrail": "^3.848.0",
     "@aws-sdk/client-ec2": "^3.848.0",
+    "@aws-sdk/client-eks": "^3.848.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.848.0",
     "@aws-sdk/client-iam": "^3.848.0",
+    "@aws-sdk/client-lambda": "^3.848.0",
     "@aws-sdk/client-rds": "^3.848.0",
+    "@aws-sdk/client-route-53": "^3.848.0",
     "@aws-sdk/client-s3": "^3.848.0",
     "@aws-sdk/credential-providers": "^3.848.0",
     "bottleneck": "^2.19.5",

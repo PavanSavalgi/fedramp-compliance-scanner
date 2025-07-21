@@ -1,6 +1,6 @@
 /**
  * Cloud Infrastructure Manager
- * FedRAMP Compliance Scanner v2.7.0 - Cloud Integration Manager
+ * FedRAMP Compliance Scanner v2.9.0 - Cloud Integration Manager
  */
 
 import * as vscode from 'vscode';

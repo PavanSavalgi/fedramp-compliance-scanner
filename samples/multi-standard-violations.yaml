@@ -23,7 +23,7 @@ data:
   # PCI-DSS: Payment card data exposure
   # FedRAMP: Federal data security violation
   user-data: |
-    ewogICJ1c2VycyI6IFsKICAgIHsKICAgICAgImlkIjogMSwKICAgICAgIm5hbWUiOiAiSm9obiBEb2UiLAogICAgICAiZW1haWwiOiAiam9obi5kb2VAZXhhbXBsZS5jb20iLAogICAgICAic3NuIjogIjEyMy00NS02Nzg5IiwKICAgICAgImNyZWRpdF9jYXJkIjogIjQxMTEtMTExMS0xMTExLTExMTEiLAogICAgICAibWVkaWNhbF9pZCI6ICJNRUQxMjM0NTYiLAogICAgICAiZ292ZXJubWVudF9pZCI6ICJHT1Y3ODkwMTIiCiAgICB9CiAgXQp9
+    [REDACTED_BASE64_ENCODED_TEST_DATA_WITH_MOCK_PII_PHI_PAYMENT_INFO]
   # Base64 encoded JSON with PII, PHI, and payment data
 
 ---

@@ -173,6 +173,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: [Wiki](https://github.com/PavanSavalgi/fedramp-compliance-scanner/wiki)
 - **Discussions**: [GitHub Discussions](https://github.com/PavanSavalgi/fedramp-compliance-scanner/discussions)
 
+## 📁 Project Organization
+
+The project is organized for maximum clarity and maintainability:
+
+- **`/docs/`** - Complete documentation suite
+  - `compliance/` - FedRAMP compliance guides and assessments
+  - `user-guide/` - Installation and usage instructions
+  - `technical/` - Technical documentation and API references
+  - `executive/` - Executive summaries and business documentation
+  - `release-notes/` - Version history and changelog
+- **`/src/`** - TypeScript source code
+- **`/test-files/`** - Organized test cases and validation files
+- **`/scripts/`** - Automation and maintenance scripts
+- **`/samples/`** - Example files for testing and demonstration
+
+📄 **See [docs/FILE-ORGANIZATION-INDEX.md](docs/FILE-ORGANIZATION-INDEX.md) for complete directory structure**
+
 ## 🏆 Changelog
 
 ### v1.9.1 (Latest)
@@ -190,7 +207,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Performance**: Optimized report generation
 - **UI**: Enhanced user interface
 
-[View Full Changelog](CHANGELOG.md)
+[View Full Changelog](docs/release-notes/changelog.md)
 
 ---
 
