@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('🚀 FedRAMP Compliance Scanner v2.5.0 activated with multi-format export and AI suggestions!');
+    console.log('🚀 FedRAMP Compliance Scanner v2.6.0 activated with enhanced documentation and multi-format exports!');
 
     // Create diagnostic collection for problems
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('fedramp-compliance');
@@ -131,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Create webview panel
         const panel = vscode.window.createWebviewPanel(
             'fedRAMPReport',
-            'FedRAMP Compliance Report v2.5.0 - MULTI-FORMAT EXPORTS & AI SUGGESTIONS',
+            'FedRAMP Compliance Report v2.6.0 - ENHANCED DOCUMENTATION & MULTI-FORMAT EXPORTS',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -176,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Show welcome message
     vscode.window.showInformationMessage(
-        '🛡️ FedRAMP Compliance Scanner v2.5.0 activated! Now with multi-format exports and AI-powered suggestions:',
+        '🛡️ FedRAMP Compliance Scanner v2.6.0 activated! Enhanced documentation with multi-format exports and AI suggestions:',
         'Test Extension',
         'Scan Workspace',
         'Generate Report'
@@ -194,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    console.log('✅ FedRAMP Compliance Scanner v2.5.0 activation completed successfully!');
+    console.log('✅ FedRAMP Compliance Scanner v2.6.0 activation completed successfully!');
 }
 
 // File scanning function
@@ -490,7 +490,7 @@ function generateEnhancedReportHTML(scanResults: {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FedRAMP Compliance Report v2.5.0 - Multi-Format Exports</title>
+    <title>FedRAMP Compliance Report v2.6.0 - Enhanced Documentation</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -755,8 +755,8 @@ function generateEnhancedReportHTML(scanResults: {
         ${scanResultsHTML}
 
         <div class="footer">
-            <h3>🚀 FedRAMP Compliance Scanner v2.5.0</h3>
-            <p>Multi-format exports with AI-powered compliance scanning and intelligent remediation</p>
+            <h3>🚀 FedRAMP Compliance Scanner v2.6.0</h3>
+            <p>Enhanced documentation with multi-format exports and AI-powered compliance scanning</p>
         </div>
     </div>
 
@@ -951,7 +951,7 @@ function generateEnhancedReportHTML(scanResults: {
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('FedRAMP Report v2.5.0 loaded with multi-format export functionality');
+            console.log('FedRAMP Report v2.6.0 loaded with multi-format export functionality');
         });
     </script>
 </body>
@@ -959,5 +959,5 @@ function generateEnhancedReportHTML(scanResults: {
 }
 
 export function deactivate() {
-    console.log('👋 FedRAMP Compliance Scanner v2.5.0 deactivated');
+    console.log('👋 FedRAMP Compliance Scanner v2.6.0 deactivated');
 }
