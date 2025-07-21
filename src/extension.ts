@@ -97,16 +97,41 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Command 4: Generate Report Command (with PDF export)
     console.log('📊 Registering generate report command...');
-    const reportCmd = vscode.commands.registerCommand('fedramp.generateReport', () => {
+    const reportCmd = vscode.commands.registerCommand('fedramp.generateReport', async () => {
         console.log('📊 Generate report command executed!');
         
         // Show progress
-        vscode.window.showInformationMessage('🔄 Generating FedRAMP Compliance Report...');
+        vscode.window.showInformationMessage('🔄 Generating FedRAMP Compliance Report with scan results...');
+        
+        // Collect scan results from diagnostics
+        const scanResults = {
+            totalFiles: 0,
+            totalIssues: 0,
+            issuesByFile: new Map<string, vscode.Diagnostic[]>(),
+            issuesByType: new Map<string, number>(),
+            scanTimestamp: new Date().toLocaleString()
+        };
+
+        // Get all diagnostics from our collection
+        diagnosticCollection.forEach((uri, diagnostics) => {
+            if (diagnostics.length > 0) {
+                scanResults.totalFiles++;
+                scanResults.totalIssues += diagnostics.length;
+                scanResults.issuesByFile.set(uri.fsPath, [...diagnostics]);
+                
+                // Count issues by type
+                diagnostics.forEach(diagnostic => {
+                    const match = diagnostic.message.match(/\[([^\]]+)\]/);
+                    const control = match ? match[1] : 'Unknown';
+                    scanResults.issuesByType.set(control, (scanResults.issuesByType.get(control) || 0) + 1);
+                });
+            }
+        });
         
         // Create webview panel
         const panel = vscode.window.createWebviewPanel(
             'fedRAMPReport',
-            'FedRAMP Compliance Report v2.2.2 - WITH PDF EXPORT',
+            'FedRAMP Compliance Report v2.2.2 - SCAN RESULTS & PDF EXPORT',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -114,11 +139,11 @@ export function activate(context: vscode.ExtensionContext) {
             }
         );
 
-        // Generate enhanced report HTML with PDF export
-        panel.webview.html = generateEnhancedReportHTML();
+        // Generate enhanced report HTML with actual scan results
+        panel.webview.html = generateEnhancedReportHTML(scanResults);
         
-        console.log('✅ Report generated successfully!');
-        vscode.window.showInformationMessage('✅ FedRAMP Compliance Report generated with PDF export option!');
+        console.log('✅ Report generated successfully with scan results!');
+        vscode.window.showInformationMessage(`✅ FedRAMP Compliance Report generated! ${scanResults.totalIssues} issues found across ${scanResults.totalFiles} files`);
     });
 
     // Command 5: Clear Problems Command
@@ -226,17 +251,116 @@ async function scanFile(uri: vscode.Uri): Promise<vscode.Diagnostic[]> {
     return diagnostics;
 }
 
-// Enhanced report generation with PDF export
-function generateEnhancedReportHTML(): string {
-    const timestamp = new Date().toLocaleString();
+// Enhanced report generation with actual scan results and PDF export
+function generateEnhancedReportHTML(scanResults: {
+    totalFiles: number;
+    totalIssues: number;
+    issuesByFile: Map<string, vscode.Diagnostic[]>;
+    issuesByType: Map<string, number>;
+    scanTimestamp: string;
+}): string {
+    const timestamp = scanResults.scanTimestamp;
     
-    return `
-<!DOCTYPE html>
+    // Generate scan results section
+    let scanResultsHTML = '';
+    if (scanResults.totalIssues > 0) {
+        // Issues by type breakdown
+        const issueTypeList = Array.from(scanResults.issuesByType.entries())
+            .map(([control, count]) => `
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${control}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${count}</td>
+                </tr>
+            `).join('');
+
+        // Files with issues
+        const fileIssuesList = Array.from(scanResults.issuesByFile.entries())
+            .map(([filePath, diagnostics]) => {
+                const fileName = filePath.split('/').pop() || filePath;
+                const issuesList = diagnostics.map(d => `
+                    <li style="margin: 5px 0; color: ${d.severity === 0 ? '#dc3545' : '#fd7e14'};">
+                        Line ${d.range.start.line + 1}: ${d.message}
+                    </li>
+                `).join('');
+                
+                return `
+                    <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="color: #2c3e50; margin-bottom: 10px;">📄 ${fileName}</h4>
+                        <ul style="margin-left: 20px;">${issuesList}</ul>
+                    </div>
+                `;
+            }).join('');
+
+        scanResultsHTML = `
+            <div class="feature-highlight">
+                <h2>🔍 Scan Results Summary</h2>
+                <p><strong>Scan completed:</strong> ${scanResults.totalFiles} files analyzed, ${scanResults.totalIssues} compliance issues found</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+                    <div>
+                        <h3 style="color: #2c3e50; margin-bottom: 15px;">📊 Issues by Control Type</h3>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Control</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${issueTypeList}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #2c3e50; margin-bottom: 15px;">📈 Compliance Status</h3>
+                        <div style="padding: 20px; background: #fff3cd; border-radius: 8px;">
+                            <div style="font-size: 2em; text-align: center; margin-bottom: 10px;">⚠️</div>
+                            <div style="text-align: center; font-weight: bold; color: #856404;">
+                                ${scanResults.totalIssues} Issues Found
+                            </div>
+                            <div style="text-align: center; margin-top: 10px; color: #6c757d;">
+                                ${scanResults.totalFiles} files scanned
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">📋 Detailed Issues by File</h3>
+                    ${fileIssuesList}
+                </div>
+            </div>
+        `;
+    } else if (scanResults.totalFiles > 0) {
+        scanResultsHTML = `
+            <div class="feature-highlight" style="background: linear-gradient(135deg, #d4edda, #c3e6cb);">
+                <h2>✅ Perfect Compliance!</h2>
+                <p><strong>Scan completed:</strong> ${scanResults.totalFiles} files analyzed with zero compliance issues found!</p>
+                <div style="font-size: 3em; margin: 20px 0;">🏆</div>
+                <p style="font-weight: bold; color: #155724;">Your infrastructure is 100% FedRAMP compliant!</p>
+            </div>
+        `;
+    } else {
+        scanResultsHTML = `
+            <div class="feature-highlight">
+                <h2>📊 No Scan Data Available</h2>
+                <p>Run a workspace scan or current file scan to see compliance results here.</p>
+                <p style="margin-top: 15px;">
+                    <strong>Available Commands:</strong><br>
+                    • <code>FedRAMP: Scan Workspace</code> - Analyze entire workspace<br>
+                    • <code>FedRAMP: Scan Current File</code> - Analyze active file
+                </p>
+            </div>
+        `;
+    }
+    
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FedRAMP Compliance Report v2.2.2 - WITH PDF EXPORT</title>
+    <title>FedRAMP Compliance Report v2.2.2 - SCAN RESULTS & PDF EXPORT</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -251,9 +375,18 @@ function generateEnhancedReportHTML(): string {
         }
         
         @media print {
-            body { background: white; padding: 0; }
+            body { 
+                background: white !important; 
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
             .no-print { display: none !important; }
-            .container { box-shadow: none; margin: 0; padding: 20px; }
+            .container { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                padding: 20px !important; 
+            }
         }
         
         .container {
@@ -281,21 +414,12 @@ function generateEnhancedReportHTML(): string {
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
             transition: all 0.3s ease;
+            font-size: 14px;
         }
         
         .pdf-export-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-        
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, #4CAF50, #2196F3, #FF9800, #E91E63);
         }
         
         .header {
@@ -310,24 +434,6 @@ function generateEnhancedReportHTML(): string {
             margin-bottom: 15px;
             font-size: 3em;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .header .subtitle {
-            font-size: 1.2em;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1.1em;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
         
         .feature-highlight {
@@ -336,7 +442,6 @@ function generateEnhancedReportHTML(): string {
             border-radius: 12px;
             padding: 30px;
             margin: 30px 0;
-            text-align: center;
         }
         
         .feature-highlight h2 {
@@ -345,119 +450,12 @@ function generateEnhancedReportHTML(): string {
             font-size: 1.8em;
         }
         
-        .compliance-dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin: 40px 0;
-        }
-        
-        .compliance-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .compliance-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-        }
-        
-        .compliance-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-        }
-        
-        .low-impact::before { background: #4CAF50; }
-        .moderate-impact::before { background: #2196F3; }
-        .high-impact::before { background: #FF9800; }
-        .scanning-features::before { background: #9C27B0; }
-        
-        .compliance-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.4em;
-            font-weight: 600;
-        }
-        
-        .low-impact h3 { color: #4CAF50; }
-        .moderate-impact h3 { color: #2196F3; }
-        .high-impact h3 { color: #FF9800; }
-        .scanning-features h3 { color: #9C27B0; }
-        
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s ease;
-        }
-        
-        .low-progress { background: linear-gradient(90deg, #4CAF50, #8BC34A); }
-        .moderate-progress { background: linear-gradient(90deg, #2196F3, #03A9F4); }
-        .high-progress { background: linear-gradient(90deg, #FF9800, #FFC107); }
-        .scanning-progress { background: linear-gradient(90deg, #9C27B0, #E91E63); }
-        
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 10px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid #f8f9fa;
-        }
-        
-        .metric:last-child {
-            border-bottom: none;
-        }
-        
-        .metric-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .metric-value {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        .success { color: #4CAF50; }
-        .warning { color: #FF9800; }
-        .info { color: #2196F3; }
-        
         .footer {
             text-align: center;
             margin-top: 50px;
             padding-top: 30px;
             border-top: 2px solid #e8ecef;
             color: #6c757d;
-        }
-        
-        .footer h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        
-        @media (max-width: 768px) {
-            .container { padding: 20px; }
-            .header h1 { font-size: 2.2em; }
-            .compliance-dashboard { grid-template-columns: 1fr; }
-            .pdf-export-btn { position: relative; top: auto; right: auto; margin: 10px auto; display: block; }
         }
     </style>
 </head>
@@ -467,125 +465,23 @@ function generateEnhancedReportHTML(): string {
     <div class="container">
         <div class="header">
             <h1>🛡️ FedRAMP Compliance Report</h1>
-            <div class="subtitle">Comprehensive Security Assessment & Authorization Readiness</div>
-            <div class="status-badge">✅ FULLY OPERATIONAL - v2.2.2 WITH PDF EXPORT</div>
-            <p style="margin-top: 15px; color: #7f8c8d;">
-                <strong>Generated:</strong> ${timestamp} | 
-                <strong>Assessment Type:</strong> Automated IaC Compliance Scan with Workspace Support
-            </p>
+            <p><strong>Generated:</strong> ${timestamp}</p>
         </div>
 
-        <div class="feature-highlight">
-            <h2>🆕 NEW in v2.2.2: Complete Workspace Scanning & PDF Export</h2>
-            <p><strong>Enhanced functionality includes full workspace scanning, current file analysis, and one-click PDF export capability.</strong></p>
-            <p>All FedRAMP compliance scanning features are now fully operational with professional report generation.</p>
-        </div>
-
-        <div class="compliance-dashboard">
-            <div class="compliance-card low-impact">
-                <h3>🏛️ FedRAMP Low Impact</h3>
-                <div class="metric">
-                    <span class="metric-label">Security Controls:</span>
-                    <span class="metric-value success">22/22 Implemented</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill low-progress" style="width: 100%"></div>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Compliance Status:</span>
-                    <span class="metric-value success">100% Complete</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Authorization Status:</span>
-                    <span class="metric-value success">✅ ATO Ready</span>
-                </div>
-                <p style="margin-top: 15px; font-size: 0.95em; color: #495057;">
-                    All baseline security controls fully implemented. Ready for immediate Authority to Operate (ATO) submission.
-                </p>
-            </div>
-
-            <div class="compliance-card moderate-impact">
-                <h3>🏢 FedRAMP Moderate Impact</h3>
-                <div class="metric">
-                    <span class="metric-label">Security Controls:</span>
-                    <span class="metric-value success">157/154 Implemented</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill moderate-progress" style="width: 102%"></div>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Compliance Status:</span>
-                    <span class="metric-value success">102% Over-Compliant</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Authorization Status:</span>
-                    <span class="metric-value success">✅ Exceeds Requirements</span>
-                </div>
-                <p style="margin-top: 15px; font-size: 0.95em; color: #495057;">
-                    Implementation exceeds FedRAMP Moderate baseline with additional security enhancements.
-                </p>
-            </div>
-
-            <div class="compliance-card high-impact">
-                <h3>🏦 FedRAMP High Impact</h3>
-                <div class="metric">
-                    <span class="metric-label">Security Controls:</span>
-                    <span class="metric-value warning">161+/170 Core Controls</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill high-progress" style="width: 95%"></div>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Compliance Status:</span>
-                    <span class="metric-value warning">95% Foundation Complete</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Authorization Status:</span>
-                    <span class="metric-value warning">🔶 Strong Foundation</span>
-                </div>
-                <p style="margin-top: 15px; font-size: 0.95em; color: #495057;">
-                    Solid compliance foundation with additional controls required for full certification.
-                </p>
-            </div>
-
-            <div class="compliance-card scanning-features">
-                <h3>🔍 Scanning Capabilities</h3>
-                <div class="metric">
-                    <span class="metric-label">Workspace Scanning:</span>
-                    <span class="metric-value success">✅ Active</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill scanning-progress" style="width: 100%"></div>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">File Types Supported:</span>
-                    <span class="metric-value info">6 Formats</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">PDF Export:</span>
-                    <span class="metric-value success">✅ Available</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Real-time Analysis:</span>
-                    <span class="metric-value success">✅ Operational</span>
-                </div>
-                <p style="margin-top: 15px; font-size: 0.95em; color: #495057;">
-                    Complete workspace scanning with support for Terraform, YAML, JSON, HCL, and Markdown files.
-                </p>
-            </div>
-        </div>
+        ${scanResultsHTML}
 
         <div class="footer">
-            <h3>🚀 Technology Stack & New Features</h3>
-            <p style="margin: 20px 0;">
-                <strong>FedRAMP Compliance Scanner v2.2.2</strong><br>
-                Now with complete workspace scanning and PDF export functionality
-            </p>
-            <p style="color: #28a745; font-weight: bold;">
-                🛡️ ENTERPRISE READY: Full Compliance Scanning + PDF Reports! 🛡️
-            </p>
+            <h3>🚀 FedRAMP Compliance Scanner v2.2.2</h3>
+            <p>Real scan results with PDF export functionality</p>
         </div>
     </div>
+
+    <script>
+        // Enable print for PDF export
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('FedRAMP Report loaded with PDF export functionality');
+        });
+    </script>
 </body>
 </html>`;
 }
