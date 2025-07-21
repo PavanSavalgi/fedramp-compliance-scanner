@@ -1,18 +1,22 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { CloudInfrastructureManager } from './cloud/cloudManager';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('🚀 FedRAMP Compliance Scanner v2.6.0 activated with enhanced documentation and multi-format exports!');
+    console.log('🚀 FedRAMP Compliance Scanner v2.7.0 activated with cloud infrastructure scanning!');
 
     // Create diagnostic collection for problems
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('fedramp-compliance');
+    
+    // Initialize cloud infrastructure manager
+    const cloudManager = new CloudInfrastructureManager();
 
     // Command 1: Test Command
     console.log('📋 Registering test command...');
     const testCmd = vscode.commands.registerCommand('fedramp.test', () => {
         console.log('🧪 Test command executed successfully!');
-        vscode.window.showInformationMessage('🧪 FedRAMP Extension v2.3.0 is working perfectly!');
+        vscode.window.showInformationMessage('🧪 FedRAMP Extension v2.7.0 is working perfectly with cloud integration!');
     });
 
     // Command 2: Scan Workspace Command
@@ -161,6 +165,116 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand('workbench.panel.markers.view.focus');
     });
 
+    // Cloud Integration Commands - NEW in v2.7.0
+    console.log('☁️ Registering cloud integration commands...');
+    
+    // Command 7: Connect to AWS
+    const connectAWSCmd = vscode.commands.registerCommand('fedramp.connectAWS', async () => {
+        console.log('☁️ Connect AWS command executed!');
+        const connected = await cloudManager.connectToCloud('aws');
+        if (connected) {
+            vscode.window.showInformationMessage('✅ Successfully connected to AWS!');
+        }
+    });
+
+    // Command 8: Scan Cloud Infrastructure
+    const scanCloudCmd = vscode.commands.registerCommand('fedramp.scanCloudInfra', async () => {
+        console.log('🔍 Scan cloud infrastructure command executed!');
+        if (!cloudManager.isConnected()) {
+            vscode.window.showWarningMessage('Please connect to a cloud provider first', 'Connect to AWS').then(action => {
+                if (action === 'Connect to AWS') {
+                    vscode.commands.executeCommand('fedramp.connectAWS');
+                }
+            });
+            return;
+        }
+        
+        const report = await cloudManager.scanCloudInfrastructure();
+        if (report) {
+            vscode.window.showInformationMessage(
+                `✅ Cloud scan complete! Compliance Score: ${report.complianceScore}% (${report.issues.length} issues found)`
+            );
+        }
+    });
+
+    // Command 9: Generate Cloud Compliance Report
+    const cloudReportCmd = vscode.commands.registerCommand('fedramp.cloudComplianceReport', async () => {
+        console.log('📊 Generate cloud compliance report command executed!');
+        await cloudManager.exportCloudReport('html');
+    });
+
+    // Command 10: Monitor Cloud Drift
+    const monitorDriftCmd = vscode.commands.registerCommand('fedramp.monitorCloudDrift', async () => {
+        console.log('👁️ Monitor cloud drift command executed!');
+        
+        if (!cloudManager.isConnected()) {
+            vscode.window.showWarningMessage('Please connect to a cloud provider first');
+            return;
+        }
+
+        const isCurrentlyMonitoring = false; // TODO: Get actual monitoring status
+        
+        if (isCurrentlyMonitoring) {
+            cloudManager.stopMonitoring();
+        } else {
+            const intervalMinutes = await vscode.window.showInputBox({
+                prompt: 'Enter monitoring interval in minutes',
+                value: '30',
+                placeHolder: '30'
+            });
+            
+            if (intervalMinutes) {
+                await cloudManager.startMonitoring({ 
+                    checkInterval: parseInt(intervalMinutes) || 30 
+                });
+            }
+        }
+    });
+
+    // Command 11: Cloud Settings
+    const cloudSettingsCmd = vscode.commands.registerCommand('fedramp.cloudSettings', async () => {
+        console.log('⚙️ Cloud settings command executed!');
+        
+        const status = cloudManager.getConnectionStatus();
+        const options: vscode.QuickPickItem[] = [
+            {
+                label: '🔌 Connect to AWS',
+                detail: 'Connect to Amazon Web Services'
+            },
+            {
+                label: '🔌 Disconnect',
+                detail: 'Disconnect from current cloud provider'
+            },
+            {
+                label: '📊 Connection Status',
+                detail: status.connected ? 
+                    `Connected to ${status.provider} (${status.region})` : 
+                    'Not connected'
+            },
+            {
+                label: '⚙️ Open Settings',
+                detail: 'Open VS Code settings for cloud configuration'
+            }
+        ];
+
+        const selection = await vscode.window.showQuickPick(options, {
+            placeHolder: 'Select cloud action',
+            title: 'FedRAMP Cloud Integration'
+        });
+
+        switch (selection?.label) {
+            case '🔌 Connect to AWS':
+                vscode.commands.executeCommand('fedramp.connectAWS');
+                break;
+            case '🔌 Disconnect':
+                await cloudManager.disconnectFromCloud();
+                break;
+            case '⚙️ Open Settings':
+                vscode.commands.executeCommand('workbench.action.openSettings', 'fedrampCompliance.cloud');
+                break;
+        }
+    });
+
     // Add all commands to subscriptions
     context.subscriptions.push(
         testCmd,
@@ -169,16 +283,23 @@ export function activate(context: vscode.ExtensionContext) {
         reportCmd,
         clearCmd,
         showProblemsCmd,
+        // Cloud integration commands
+        connectAWSCmd,
+        scanCloudCmd,
+        cloudReportCmd,
+        monitorDriftCmd,
+        cloudSettingsCmd,
         diagnosticCollection
     );
 
-    console.log('✅ All 6 commands registered successfully!');
+    console.log('✅ All 11 commands registered successfully (6 core + 5 cloud)!');
 
     // Show welcome message
     vscode.window.showInformationMessage(
-        '🛡️ FedRAMP Compliance Scanner v2.6.0 activated! Enhanced documentation with multi-format exports and AI suggestions:',
+        '🛡️ FedRAMP Compliance Scanner v2.7.0 activated! Now with cloud infrastructure scanning:',
         'Test Extension',
         'Scan Workspace',
+        'Connect to AWS',
         'Generate Report'
     ).then(selection => {
         switch (selection) {
@@ -188,9 +309,19 @@ export function activate(context: vscode.ExtensionContext) {
             case 'Scan Workspace':
                 vscode.commands.executeCommand('fedramp.scanWorkspace');
                 break;
+            case 'Connect to AWS':
+                vscode.commands.executeCommand('fedramp.connectAWS');
+                break;
             case 'Generate Report':
                 vscode.commands.executeCommand('fedramp.generateReport');
                 break;
+        }
+    });
+
+    // Cleanup function
+    context.subscriptions.push({
+        dispose: () => {
+            cloudManager.dispose();
         }
     });
 
@@ -959,5 +1090,5 @@ function generateEnhancedReportHTML(scanResults: {
 }
 
 export function deactivate() {
-    console.log('👋 FedRAMP Compliance Scanner v2.6.0 deactivated');
+    console.log('👋 FedRAMP Compliance Scanner v2.7.0 deactivated');
 }

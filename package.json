@@ -1,8 +1,8 @@
 {
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
-  "description": "VS Code extension for real-time FedRAMP compliance scanning with live tracking and Problems panel integration",
-  "version": "2.6.0",
+  "description": "VS Code extension for real-time FedRAMP compliance scanning with live cloud infrastructure monitoring and Problems panel integration",
+  "version": "2.7.0",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -78,6 +78,36 @@
         "title": "Show Problems Panel",
         "category": "FedRAMP Compliance",
         "icon": "$(warning)"
+      },
+      {
+        "command": "fedramp.connectAWS",
+        "title": "Connect to AWS Account",
+        "category": "FedRAMP Cloud",
+        "icon": "$(cloud)"
+      },
+      {
+        "command": "fedramp.scanCloudInfra",
+        "title": "Scan Cloud Infrastructure",
+        "category": "FedRAMP Cloud",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "fedramp.cloudComplianceReport",
+        "title": "Generate Cloud Compliance Report",
+        "category": "FedRAMP Cloud",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "fedramp.monitorCloudDrift",
+        "title": "Monitor Cloud Drift",
+        "category": "FedRAMP Cloud",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "fedramp.cloudSettings",
+        "title": "Cloud Connection Settings",
+        "category": "FedRAMP Cloud",
+        "icon": "$(settings-gear)"
       }
     ],
     "views": {
@@ -249,6 +279,46 @@
           "type": "boolean",
           "default": true,
           "description": "Enable advanced reporting features (charts, dashboards, trends)"
+        },
+        "fedrampCompliance.cloud.aws.region": {
+          "type": "string",
+          "default": "us-east-1",
+          "description": "Default AWS region for cloud scanning"
+        },
+        "fedrampCompliance.cloud.aws.profile": {
+          "type": "string",
+          "default": "default",
+          "description": "AWS credentials profile to use"
+        },
+        "fedrampCompliance.cloud.scanInterval": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 1440,
+          "description": "Cloud infrastructure scan interval in minutes"
+        },
+        "fedrampCompliance.cloud.enableRealTimeMonitoring": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable real-time cloud infrastructure monitoring"
+        },
+        "fedrampCompliance.cloud.notificationLevel": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "all"
+          ],
+          "default": "high",
+          "description": "Compliance notification level for cloud resources"
+        },
+        "fedrampCompliance.cloud.maxConcurrentRequests": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Maximum concurrent API requests for cloud scanning"
         }
       }
     }
@@ -262,19 +332,27 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.102.0",
     "@types/node": "20.x",
+    "@types/vscode": "^1.102.0",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
-    "eslint": "^9.10.0",
-    "typescript": "^5.6.2",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.10.0",
+    "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudtrail": "^3.848.0",
+    "@aws-sdk/client-ec2": "^3.848.0",
+    "@aws-sdk/client-iam": "^3.848.0",
+    "@aws-sdk/client-rds": "^3.848.0",
+    "@aws-sdk/client-s3": "^3.848.0",
+    "@aws-sdk/credential-providers": "^3.848.0",
+    "bottleneck": "^2.19.5",
     "chart.js": "^4.4.0",
-    "d3": "^7.8.5",
     "csv-stringify": "^6.4.0",
-    "fast-glob": "^3.3.0"
+    "d3": "^7.8.5",
+    "fast-glob": "^3.3.0",
+    "node-cache": "^5.1.2"
   }
 }
