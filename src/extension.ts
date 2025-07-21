@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('🚀 FedRAMP Compliance Scanner v2.2.2 - COMPLETE FUNCTIONALITY - Starting activation...');
+    console.log('🚀 FedRAMP Compliance Scanner v2.3.0 - COMPLETE FUNCTIONALITY - Starting activation...');
 
     // Create diagnostic collection for problems
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('fedramp-compliance');
@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('📋 Registering test command...');
     const testCmd = vscode.commands.registerCommand('fedramp.test', () => {
         console.log('🧪 Test command executed successfully!');
-        vscode.window.showInformationMessage('🧪 FedRAMP Extension v2.2.2 is working perfectly!');
+        vscode.window.showInformationMessage('🧪 FedRAMP Extension v2.3.0 is working perfectly!');
     });
 
     // Command 2: Scan Workspace Command
@@ -131,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Create webview panel
         const panel = vscode.window.createWebviewPanel(
             'fedRAMPReport',
-            'FedRAMP Compliance Report v2.2.2 - SCAN RESULTS & PDF EXPORT',
+            'FedRAMP Compliance Report v2.3.0 - SCAN RESULTS & PDF EXPORT',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -176,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Show welcome message
     vscode.window.showInformationMessage(
-        '🛡️ FedRAMP Compliance Scanner v2.2.2 activated! Now with workspace scanning and PDF export:',
+        '🛡️ FedRAMP Compliance Scanner v2.3.0 activated! Now with workspace scanning and PDF export:',
         'Test Extension',
         'Scan Workspace',
         'Generate Report'
@@ -194,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    console.log('✅ FedRAMP Compliance Scanner v2.2.2 activation completed successfully!');
+    console.log('✅ FedRAMP Compliance Scanner v2.3.0 activation completed successfully!');
 }
 
 // File scanning function
@@ -360,7 +360,7 @@ function generateEnhancedReportHTML(scanResults: {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FedRAMP Compliance Report v2.2.2 - SCAN RESULTS & PDF EXPORT</title>
+    <title>FedRAMP Compliance Report v2.3.0 - SCAN RESULTS & PDF EXPORT</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -471,7 +471,7 @@ function generateEnhancedReportHTML(scanResults: {
         ${scanResultsHTML}
 
         <div class="footer">
-            <h3>🚀 FedRAMP Compliance Scanner v2.2.2</h3>
+            <h3>🚀 FedRAMP Compliance Scanner v2.3.0</h3>
             <p>Real scan results with PDF export functionality</p>
         </div>
     </div>
@@ -487,5 +487,5 @@ function generateEnhancedReportHTML(scanResults: {
 }
 
 export function deactivate() {
-    console.log('👋 FedRAMP Compliance Scanner v2.2.2 deactivated');
+    console.log('👋 FedRAMP Compliance Scanner v2.3.0 deactivated');
 }
