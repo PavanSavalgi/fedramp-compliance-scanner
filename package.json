@@ -2,7 +2,7 @@
   "name": "fedramp-compliance-scanner",
   "displayName": "FedRAMP Compliance Scanner",
   "description": "VS Code extension for real-time FedRAMP compliance scanning with live tracking and Problems panel integration",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "publisher": "fedramp-compliance",
   "author": {
     "name": "Pavan Savalgi"
@@ -48,6 +48,18 @@
         "title": "Test Extension",
         "category": "FedRAMP Compliance",
         "icon": "$(beaker)"
+      },
+      {
+        "command": "fedramp.scanWorkspace",
+        "title": "Scan Workspace",
+        "category": "FedRAMP Compliance",
+        "icon": "$(search)"
+      },
+      {
+        "command": "fedramp.scanCurrentFile",
+        "title": "Scan Current File",
+        "category": "FedRAMP Compliance",
+        "icon": "$(file)"
       },
       {
         "command": "fedramp.generateReport",
