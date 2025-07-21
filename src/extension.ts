@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('🚀 FedRAMP Compliance Scanner v2.3.0 - COMPLETE FUNCTIONALITY - Starting activation...');
+    console.log('🚀 FedRAMP Compliance Scanner v2.5.0 activated with multi-format export and AI suggestions!');
 
     // Create diagnostic collection for problems
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('fedramp-compliance');
@@ -131,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Create webview panel
         const panel = vscode.window.createWebviewPanel(
             'fedRAMPReport',
-            'FedRAMP Compliance Report v2.3.0 - SCAN RESULTS & PDF EXPORT',
+            'FedRAMP Compliance Report v2.5.0 - MULTI-FORMAT EXPORTS & AI SUGGESTIONS',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -176,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Show welcome message
     vscode.window.showInformationMessage(
-        '🛡️ FedRAMP Compliance Scanner v2.3.0 activated! Now with workspace scanning and PDF export:',
+        '🛡️ FedRAMP Compliance Scanner v2.5.0 activated! Now with multi-format exports and AI-powered suggestions:',
         'Test Extension',
         'Scan Workspace',
         'Generate Report'
@@ -194,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    console.log('✅ FedRAMP Compliance Scanner v2.3.0 activation completed successfully!');
+    console.log('✅ FedRAMP Compliance Scanner v2.5.0 activation completed successfully!');
 }
 
 // File scanning function
@@ -251,6 +251,115 @@ async function scanFile(uri: vscode.Uri): Promise<vscode.Diagnostic[]> {
     return diagnostics;
 }
 
+// AI-based suggestions for compliance issues
+function generateAISuggestions(control: string, issue: string): string {
+    const suggestionMap: Record<string, Record<string, string>> = {
+        'AC-2': {
+            'hardcoded password': `
+                <div class="ai-suggestion">
+                    <h5>🤖 AI Remediation Suggestions:</h5>
+                    <ul>
+                        <li><strong>Immediate:</strong> Replace hardcoded passwords with environment variables or secure vaults (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault)</li>
+                        <li><strong>Implementation:</strong> Use <code>process.env.PASSWORD</code> or secure credential injection at runtime</li>
+                        <li><strong>Security:</strong> Implement password rotation policies and access logging</li>
+                        <li><strong>Best Practice:</strong> Use service accounts with role-based access instead of shared credentials</li>
+                    </ul>
+                    <div class="code-example">
+                        <strong>Example Fix:</strong><br>
+                        <code style="background: #f8f9fa; padding: 10px; display: block; margin: 5px 0;">
+                        // ❌ Bad: password = "mypassword123"<br>
+                        // ✅ Good: password = process.env.DB_PASSWORD
+                        </code>
+                    </div>
+                </div>
+            `
+        },
+        'SC-8': {
+            'unencrypted http': `
+                <div class="ai-suggestion">
+                    <h5>🤖 AI Remediation Suggestions:</h5>
+                    <ul>
+                        <li><strong>Immediate:</strong> Replace all HTTP URLs with HTTPS equivalents</li>
+                        <li><strong>Certificate:</strong> Obtain valid SSL/TLS certificates (Let's Encrypt for free certificates)</li>
+                        <li><strong>Configuration:</strong> Configure web servers to redirect HTTP to HTTPS automatically</li>
+                        <li><strong>Compliance:</strong> Implement HTTP Strict Transport Security (HSTS) headers</li>
+                    </ul>
+                    <div class="code-example">
+                        <strong>Example Fix:</strong><br>
+                        <code style="background: #f8f9fa; padding: 10px; display: block; margin: 5px 0;">
+                        // ❌ Bad: http://api.example.com<br>
+                        // ✅ Good: https://api.example.com
+                        </code>
+                    </div>
+                </div>
+            `
+        },
+        'AC-3': {
+            'overly permissive': `
+                <div class="ai-suggestion">
+                    <h5>🤖 AI Remediation Suggestions:</h5>
+                    <ul>
+                        <li><strong>Principle:</strong> Apply least privilege access - restrict to specific IP ranges or subnets</li>
+                        <li><strong>Network Segmentation:</strong> Use VPCs, security groups, and network ACLs to limit access</li>
+                        <li><strong>Monitoring:</strong> Implement network access logging and anomaly detection</li>
+                        <li><strong>Zero Trust:</strong> Consider implementing zero-trust network architecture</li>
+                    </ul>
+                    <div class="code-example">
+                        <strong>Example Fix:</strong><br>
+                        <code style="background: #f8f9fa; padding: 10px; display: block; margin: 5px 0;">
+                        // ❌ Bad: cidr_blocks = ["0.0.0.0/0"]<br>
+                        // ✅ Good: cidr_blocks = ["10.0.1.0/24", "192.168.1.0/24"]
+                        </code>
+                    </div>
+                </div>
+            `
+        },
+        'SC-13': {
+            'encryption disabled': `
+                <div class="ai-suggestion">
+                    <h5>🤖 AI Remediation Suggestions:</h5>
+                    <ul>
+                        <li><strong>Data at Rest:</strong> Enable encryption for databases, storage volumes, and backups</li>
+                        <li><strong>Data in Transit:</strong> Use TLS 1.2+ for all network communications</li>
+                        <li><strong>Key Management:</strong> Implement proper key rotation and secure key storage</li>
+                        <li><strong>Compliance:</strong> Use FIPS 140-2 validated encryption modules for FedRAMP</li>
+                    </ul>
+                    <div class="code-example">
+                        <strong>Example Fix:</strong><br>
+                        <code style="background: #f8f9fa; padding: 10px; display: block; margin: 5px 0;">
+                        // ❌ Bad: encryption = false<br>
+                        // ✅ Good: encryption = true, kms_key_id = "arn:aws:kms:..."
+                        </code>
+                    </div>
+                </div>
+            `
+        }
+    };
+
+    // Extract control type from issue message
+    const controlType = control.match(/\[(.*?)\]/)?.[1] || control;
+    
+    // Find matching suggestion based on issue content
+    for (const [issueType, suggestion] of Object.entries(suggestionMap[controlType] || {})) {
+        if (issue.toLowerCase().includes(issueType.toLowerCase())) {
+            return suggestion;
+        }
+    }
+
+    // Generic AI suggestion if no specific match found
+    return `
+        <div class="ai-suggestion">
+            <h5>🤖 AI Remediation Suggestions:</h5>
+            <ul>
+                <li><strong>Review:</strong> Examine the flagged code for compliance with ${controlType} requirements</li>
+                <li><strong>Documentation:</strong> Consult FedRAMP security controls documentation</li>
+                <li><strong>Best Practices:</strong> Implement industry-standard security measures</li>
+                <li><strong>Testing:</strong> Validate fixes with security scanning tools</li>
+            </ul>
+        </div>
+    `;
+}
+
 // Enhanced report generation with actual scan results and PDF export
 function generateEnhancedReportHTML(scanResults: {
     totalFiles: number;
@@ -277,16 +386,22 @@ function generateEnhancedReportHTML(scanResults: {
         const fileIssuesList = Array.from(scanResults.issuesByFile.entries())
             .map(([filePath, diagnostics]) => {
                 const fileName = filePath.split('/').pop() || filePath;
-                const issuesList = diagnostics.map(d => `
-                    <li style="margin: 5px 0; color: ${d.severity === 0 ? '#dc3545' : '#fd7e14'};">
-                        Line ${d.range.start.line + 1}: ${d.message}
-                    </li>
-                `).join('');
+                const issuesList = diagnostics.map(d => {
+                    const aiSuggestion = generateAISuggestions(d.message, d.message);
+                    return `
+                        <li style="margin: 15px 0; color: ${d.severity === 0 ? '#dc3545' : '#fd7e14'}; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; background: #f8f9fa;">
+                            <div style="font-weight: bold; margin-bottom: 10px;">
+                                📍 Line ${d.range.start.line + 1}: ${d.message}
+                            </div>
+                            ${aiSuggestion}
+                        </li>
+                    `;
+                }).join('');
                 
                 return `
                     <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
                         <h4 style="color: #2c3e50; margin-bottom: 10px;">📄 ${fileName}</h4>
-                        <ul style="margin-left: 20px;">${issuesList}</ul>
+                        <ul style="margin-left: 20px; list-style: none;">${issuesList}</ul>
                     </div>
                 `;
             }).join('');
@@ -296,7 +411,7 @@ function generateEnhancedReportHTML(scanResults: {
                 <h2>🔍 Scan Results Summary</h2>
                 <p><strong>Scan completed:</strong> ${scanResults.totalFiles} files analyzed, ${scanResults.totalIssues} compliance issues found</p>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 30px 0;">
                     <div>
                         <h3 style="color: #2c3e50; margin-bottom: 15px;">📊 Issues by Control Type</h3>
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
@@ -310,6 +425,21 @@ function generateEnhancedReportHTML(scanResults: {
                                 ${issueTypeList}
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #2c3e50; margin-bottom: 15px;">🤖 AI-Powered Solutions</h3>
+                        <div style="padding: 20px; background: linear-gradient(135deg, #e8f5e8, #f0f8f0); border-radius: 8px; border: 1px solid #28a745;">
+                            <div style="font-size: 1.5em; text-align: center; margin-bottom: 10px;">🧠</div>
+                            <div style="text-align: center; font-weight: bold; color: #155724; margin-bottom: 10px;">
+                                Smart Remediation
+                            </div>
+                            <div style="text-align: center; color: #155724; font-size: 0.85em;">
+                                Each issue includes AI-generated<br>
+                                remediation steps, code examples,<br>
+                                and best practice recommendations
+                            </div>
+                        </div>
                     </div>
                     
                     <div>
@@ -360,7 +490,7 @@ function generateEnhancedReportHTML(scanResults: {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FedRAMP Compliance Report v2.3.0 - SCAN RESULTS & PDF EXPORT</title>
+    <title>FedRAMP Compliance Report v2.5.0 - Multi-Format Exports</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -422,6 +552,112 @@ function generateEnhancedReportHTML(scanResults: {
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
         
+        .download-menu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .download-toggle {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            font-size: 14px;
+            min-width: 160px;
+        }
+        
+        .download-toggle:hover {
+            background: linear-gradient(135deg, #45a049, #4CAF50);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .download-options {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            display: none;
+            min-width: 200px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .download-options.show {
+            display: block;
+        }
+        
+        .download-option {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .download-option:hover {
+            background: #f8f9fa;
+            color: #4CAF50;
+        }
+        
+        .download-option:not(:last-child) {
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ai-suggestion {
+            background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        
+        .ai-suggestion h5 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .ai-suggestion ul {
+            margin: 10px 0 0 20px;
+            color: #155724;
+        }
+        
+        .ai-suggestion li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        
+        .code-example {
+            background: #f1f3f4;
+            border-left: 4px solid #28a745;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .code-example code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
         .header {
             text-align: center;
             margin-bottom: 40px;
@@ -450,6 +686,45 @@ function generateEnhancedReportHTML(scanResults: {
             font-size: 1.8em;
         }
         
+        .ai-suggestion {
+            background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        
+        .ai-suggestion h5 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .ai-suggestion ul {
+            margin: 10px 0 0 20px;
+            color: #155724;
+        }
+        
+        .ai-suggestion li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        
+        .code-example {
+            background: #f1f3f4;
+            border-left: 4px solid #28a745;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .code-example code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
         .footer {
             text-align: center;
             margin-top: 50px;
@@ -460,7 +735,16 @@ function generateEnhancedReportHTML(scanResults: {
     </style>
 </head>
 <body>
-    <button class="pdf-export-btn no-print" onclick="window.print()">📄 Export as PDF</button>
+    <div class="download-menu no-print">
+        <button class="download-toggle" onclick="toggleDownloadMenu()">📥 Export Report ▼</button>
+        <div class="download-options" id="downloadOptions">
+            <button class="download-option" onclick="exportAsPDF()">📄 PDF Format</button>
+            <button class="download-option" onclick="exportAsHTML()">🌐 HTML Format</button>
+            <button class="download-option" onclick="exportAsJSON()">📋 JSON Format</button>
+            <button class="download-option" onclick="exportAsCSV()">� CSV Format</button>
+            <button class="download-option" onclick="exportAsMarkdown()">📝 Markdown Format</button>
+        </div>
+    </div>
     
     <div class="container">
         <div class="header">
@@ -471,15 +755,203 @@ function generateEnhancedReportHTML(scanResults: {
         ${scanResultsHTML}
 
         <div class="footer">
-            <h3>🚀 FedRAMP Compliance Scanner v2.3.0</h3>
-            <p>Real scan results with PDF export functionality</p>
+            <h3>🚀 FedRAMP Compliance Scanner v2.5.0</h3>
+            <p>Multi-format exports with AI-powered compliance scanning and intelligent remediation</p>
         </div>
     </div>
 
     <script>
-        // Enable print for PDF export
+        // Global scan data for exports
+        let scanData = ${JSON.stringify(scanResults)};
+        
+        // Toggle download menu
+        function toggleDownloadMenu() {
+            const options = document.getElementById('downloadOptions');
+            options.classList.toggle('show');
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.querySelector('.download-menu');
+            if (!menu.contains(event.target)) {
+                document.getElementById('downloadOptions').classList.remove('show');
+            }
+        });
+        
+        // Export as PDF
+        function exportAsPDF() {
+            document.getElementById('downloadOptions').classList.remove('show');
+            
+            // Create a new window for printing with better print styles
+            const printWindow = window.open('', '_blank');
+            const htmlContent = document.documentElement.outerHTML;
+            
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            
+            // Wait for content to load then print
+            printWindow.onload = function() {
+                printWindow.focus();
+                printWindow.print();
+                
+                // Close the print window after printing
+                printWindow.onafterprint = function() {
+                    printWindow.close();
+                };
+            };
+        }
+        
+        // Export as HTML
+        function exportAsHTML() {
+            document.getElementById('downloadOptions').classList.remove('show');
+            
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = \`fedramp-compliance-report-\${new Date().toISOString().split('T')[0]}.html\`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Export as JSON
+        function exportAsJSON() {
+            document.getElementById('downloadOptions').classList.remove('show');
+            
+            const reportData = {
+                metadata: {
+                    title: "FedRAMP Compliance Report",
+                    version: "2.4.0",
+                    generated: scanData.scanTimestamp,
+                    totalFiles: scanData.totalFiles,
+                    totalIssues: scanData.totalIssues
+                },
+                summary: {
+                    issuesByType: Object.fromEntries(scanData.issuesByType || []),
+                    complianceStatus: scanData.totalIssues === 0 ? "COMPLIANT" : "NON_COMPLIANT"
+                },
+                issues: []
+            };
+            
+            // Convert issues data
+            if (scanData.issuesByFile) {
+                Object.entries(scanData.issuesByFile).forEach(([filePath, diagnostics]) => {
+                    diagnostics.forEach(diagnostic => {
+                        reportData.issues.push({
+                            file: filePath,
+                            line: diagnostic.range?.start?.line + 1 || 0,
+                            control: diagnostic.message.match(/\\[(.*?)\\]/)?.[1] || "UNKNOWN",
+                            severity: diagnostic.severity === 0 ? "ERROR" : "WARNING",
+                            message: diagnostic.message,
+                            description: diagnostic.message
+                        });
+                    });
+                });
+            }
+            
+            const jsonString = JSON.stringify(reportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = \`fedramp-compliance-report-\${new Date().toISOString().split('T')[0]}.json\`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Export as CSV
+        function exportAsCSV() {
+            document.getElementById('downloadOptions').classList.remove('show');
+            
+            let csvContent = "File,Line,Control,Severity,Message\\n";
+            
+            if (scanData.issuesByFile) {
+                Object.entries(scanData.issuesByFile).forEach(([filePath, diagnostics]) => {
+                    diagnostics.forEach(diagnostic => {
+                        const fileName = filePath.split('/').pop() || filePath;
+                        const line = diagnostic.range?.start?.line + 1 || 0;
+                        const control = diagnostic.message.match(/\\[(.*?)\\]/)?.[1] || "UNKNOWN";
+                        const severity = diagnostic.severity === 0 ? "ERROR" : "WARNING";
+                        const message = diagnostic.message.replace(/"/g, '""'); // Escape quotes
+                        
+                        csvContent += \`"\${fileName}",\${line},"\${control}","\${severity}","\${message}"\\n\`;
+                    });
+                });
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = \`fedramp-compliance-report-\${new Date().toISOString().split('T')[0]}.csv\`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Export as Markdown
+        function exportAsMarkdown() {
+            document.getElementById('downloadOptions').classList.remove('show');
+            
+            let markdown = \`# FedRAMP Compliance Report v2.4.0\\n\\n\`;
+            markdown += \`**Generated:** \${scanData.scanTimestamp}\\n\\n\`;
+            markdown += \`## 📊 Summary\\n\\n\`;
+            markdown += \`- **Total Files Scanned:** \${scanData.totalFiles}\\n\`;
+            markdown += \`- **Total Issues Found:** \${scanData.totalIssues}\\n\`;
+            markdown += \`- **Compliance Status:** \${scanData.totalIssues === 0 ? '✅ COMPLIANT' : '⚠️ NON-COMPLIANT'}\\n\\n\`;
+            
+            if (scanData.issuesByType && scanData.issuesByType.size > 0) {
+                markdown += \`## 🔍 Issues by Control Type\\n\\n\`;
+                markdown += \`| Control | Count |\\n\`;
+                markdown += \`|---------|-------|\\n\`;
+                Array.from(scanData.issuesByType.entries()).forEach(([control, count]) => {
+                    markdown += \`| \${control} | \${count} |\\n\`;
+                });
+                markdown += \`\\n\`;
+            }
+            
+            if (scanData.issuesByFile && Object.keys(scanData.issuesByFile).length > 0) {
+                markdown += \`## 📋 Detailed Issues\\n\\n\`;
+                Object.entries(scanData.issuesByFile).forEach(([filePath, diagnostics]) => {
+                    const fileName = filePath.split('/').pop() || filePath;
+                    markdown += \`### 📄 \${fileName}\\n\\n\`;
+                    
+                    diagnostics.forEach(diagnostic => {
+                        const line = diagnostic.range?.start?.line + 1 || 0;
+                        const severity = diagnostic.severity === 0 ? '🔴 ERROR' : '🟡 WARNING';
+                        markdown += \`- **Line \${line}:** \${severity} - \${diagnostic.message}\\n\`;
+                    });
+                    markdown += \`\\n\`;
+                });
+            }
+            
+            markdown += \`---\\n\\n\`;
+            markdown += \`*Report generated by FedRAMP Compliance Scanner v2.4.0 with AI-powered suggestions*\`;
+            
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = \`fedramp-compliance-report-\${new Date().toISOString().split('T')[0]}.md\`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('FedRAMP Report loaded with PDF export functionality');
+            console.log('FedRAMP Report v2.5.0 loaded with multi-format export functionality');
         });
     </script>
 </body>
@@ -487,5 +959,5 @@ function generateEnhancedReportHTML(scanResults: {
 }
 
 export function deactivate() {
-    console.log('👋 FedRAMP Compliance Scanner v2.3.0 deactivated');
+    console.log('👋 FedRAMP Compliance Scanner v2.5.0 deactivated');
 }
