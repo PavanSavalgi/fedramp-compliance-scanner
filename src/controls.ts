@@ -4,7 +4,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     // Access Control (AC)
     {
         id: 'AC-2',
-        family: 'AC',
+        family: 'Access Control',
         title: 'Account Management',
         description: 'Organizations must manage information system accounts including establishing, activating, modifying, reviewing, disabling, and removing accounts.',
         standard: 'FedRAMP',
@@ -23,7 +23,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     },
     {
         id: 'AC-3',
-        family: 'AC',
+        family: 'Access Control',
         title: 'Access Enforcement',
         description: 'The information system enforces approved authorizations for logical access.',
         standard: 'FedRAMP',
@@ -43,7 +43,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     // Audit and Accountability (AU)
     {
         id: 'AU-2',
-        family: 'AU',
+        family: 'Audit and Accountability',
         title: 'Auditable Events',
         description: 'Organizations must determine what events are auditable and specify the frequency of auditing.',
         standard: 'FedRAMP',
@@ -62,7 +62,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     },
     {
         id: 'AU-4',
-        family: 'AU',
+        family: 'Audit and Accountability',
         title: 'Audit Storage Capacity',
         description: 'Organizations must allocate audit storage capacity and configure auditing to reduce likelihood of capacity being exceeded.',
         standard: 'FedRAMP',
@@ -141,7 +141,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     // System and Communications Protection (SC)
     {
         id: 'SC-7',
-        family: 'SC',
+        family: 'System and Communications Protection',
         title: 'Boundary Protection',
         description: 'The information system monitors and controls communications at external boundaries.',
         standard: 'FedRAMP',
@@ -160,7 +160,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     },
     {
         id: 'SC-8',
-        family: 'SC',
+        family: 'System and Communications Protection',
         title: 'Transmission Confidentiality and Integrity',
         description: 'The information system protects the confidentiality and integrity of transmitted information.',
         standard: 'FedRAMP',
@@ -179,7 +179,7 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
     },
     {
         id: 'SC-28',
-        family: 'SC',
+        family: 'System and Communications Protection',
         title: 'Protection of Information at Rest',
         description: 'The information system protects the confidentiality and integrity of information at rest.',
         standard: 'FedRAMP',
@@ -219,5 +219,9 @@ export const FEDRAMP_CONTROLS: ComplianceControl[] = [
 ];
 
 export function getControlsByLevel(level: FedRAMPLevel): ComplianceControl[] {
-    return FEDRAMP_CONTROLS.filter(control => control.level && control.level.includes(level));
+    return FEDRAMP_CONTROLS.filter(control => 
+        control.level && 
+        Array.isArray(control.level) && 
+        control.level.some(l => l === level)
+    );
 }
