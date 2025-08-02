@@ -78,6 +78,12 @@
         "title": "Clear Problems",
         "category": "FedRAMP Compliance",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "fedramp.showAWSConformancePackCoverage",
+        "title": "Show AWS Config Conformance Pack Coverage",
+        "category": "FedRAMP Compliance",
+        "icon": "$(cloud)"
       }
     ],
     "views": {
