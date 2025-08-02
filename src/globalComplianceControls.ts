@@ -1,4 +1,4 @@
-import { ComplianceControl, ComplianceStandard, FedRAMPLevel, CISLevel, PCILevel } from './types';
+import { ComplianceControl, ComplianceStandard } from './types';
 
 export class GlobalComplianceControls {
     private controls: Map<ComplianceStandard, ComplianceControl[]> = new Map();
@@ -9,10 +9,6 @@ export class GlobalComplianceControls {
 
     private initializeControls(): void {
         this.controls.set('FedRAMP', this.getFedRAMPControls());
-        this.controls.set('CIS-AWS-Benchmark-v1.4', this.getCISAWSControls());
-        this.controls.set('NIST-SP-800-171-r2', this.getNIST800171Controls());
-        this.controls.set('NIST-SP-800-53-r5', this.getNIST80053Controls());
-        this.controls.set('PCI-DSS-v3.2.1', this.getPCIDSSControls());
     }
 
     getControlsForStandards(standards: ComplianceStandard[]): ComplianceControl[] {
@@ -46,9 +42,9 @@ export class GlobalComplianceControls {
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /password\s*=\s*["'][^"']*["']/,
+                        pattern: /password\s*=\s*["'](?!.*(?:\$\{|data\.|var\.|aws_secretsmanager|random_password))[a-zA-Z0-9!@#$%^&*()_+-={}[\]|;:,.<>?]{3,}["']/,
                         message: 'FedRAMP AC-2: Hardcoded passwords detected',
-                        remediation: 'Use environment variables or secure secret management',
+                        remediation: 'Use environment variables or secure secret management (AWS Secrets Manager, Parameter Store)',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -111,15 +107,15 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /network[_-]?segmentation|traffic[_-]?control|subnet|security[_-]?group/i,
-                        message: 'FedRAMP AC-4: Check for network segmentation and traffic control',
-                        remediation: 'Implement network segmentation and information flow controls',
+                        pattern: /cidr_block\s*=\s*["']0\.0\.0\.0\/0["']|source_cidr_block\s*=\s*["']0\.0\.0\.0\/0["']/,
+                        message: 'FedRAMP AC-4: Avoid overly permissive network access (0.0.0.0/0)',
+                        remediation: 'Use specific CIDR blocks instead of 0.0.0.0/0 for better network segmentation',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /data[_-]?flow|security[_-]?domain|cross[_-]?domain|dmz/i,
-                        message: 'FedRAMP AC-4: Verify data flow restrictions between security domains',
-                        remediation: 'Configure proper data flow restrictions and security domains',
+                        pattern: /from_port\s*=\s*0.*to_port\s*=\s*65535|ingress.*protocol\s*=\s*["']-1["']/,
+                        message: 'FedRAMP AC-4: Restrict network ports and protocols',
+                        remediation: 'Use specific ports and protocols instead of allowing all traffic',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -157,13 +153,13 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /vpn|remote[_-]?access|ssh|rdp|bastion[_-]?host/i,
+                        pattern: /aws_vpn|aws_ec2_client_vpn|ssh[_-]?key|rdp[_-]?access|bastion[_-]?host(?!.*service-\d\.json)/i,
                         message: 'FedRAMP AC-17: Check for secure remote access configurations',
                         remediation: 'Configure secure remote access with proper authentication',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /remote[_-]?session[_-]?log|vpn[_-]?monitoring|access[_-]?audit/i,
+                        pattern: /vpn[_-]?connection[_-]?logs|ssh[_-]?session[_-]?logs|remote[_-]?access[_-]?audit(?!.*service-\d\.json)/i,
                         message: 'FedRAMP AC-17: Verify remote access monitoring and logging',
                         remediation: 'Enable comprehensive remote access monitoring and logging',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
@@ -227,15 +223,15 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /audit[_-]?format|log[_-]?format|event[_-]?details|timestamp|user[_-]?id/i,
-                        message: 'FedRAMP AU-3: Check for comprehensive audit record content',
-                        remediation: 'Configure audit records to include required content elements',
+                        pattern: /cloudtrail.*include_global_service_events\s*=\s*(false|"false")/i,
+                        message: 'FedRAMP AU-3: CloudTrail should include global service events for complete audit records',
+                        remediation: 'Set include_global_service_events = true for CloudTrail',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /source[_-]?ip|event[_-]?type|outcome|resource[_-]?accessed/i,
-                        message: 'FedRAMP AU-3: Verify audit record completeness',
-                        remediation: 'Ensure audit records contain all required information',
+                        pattern: /cloudtrail.*enable_log_file_validation\s*=\s*(false|"false")/i,
+                        message: 'FedRAMP AU-3: CloudTrail log file validation should be enabled',
+                        remediation: 'Enable log file validation to ensure audit record integrity',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -389,16 +385,16 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /configuration[_-]?settings|security[_-]?configuration|hardening[_-]?configuration/i,
-                        message: 'FedRAMP CM-6: Check for security configuration settings',
-                        remediation: 'Establish and document security configuration settings',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                        pattern: /resource\s+"aws_instance"[^}]*(?!.*security_groups|.*monitoring\s*=\s*true|.*associate_public_ip_address\s*=\s*false)/s,
+                        message: 'FedRAMP CM-6: EC2 instances should have security configurations',
+                        remediation: 'Configure security groups, monitoring, and disable public IPs for EC2 instances',
+                        fileTypes: ['.tf']
                     },
                     {
-                        pattern: /cis[_-]?benchmark|security[_-]?hardening|configuration[_-]?guide/i,
-                        message: 'FedRAMP CM-6: Verify security hardening standards',
-                        remediation: 'Apply security hardening and configuration guides',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                        pattern: /resource\s+"aws_s3_bucket"[^}]*(?!.*versioning|.*encryption|.*public_access_block)/s,
+                        message: 'FedRAMP CM-6: S3 buckets should have security configurations',
+                        remediation: 'Enable versioning, encryption, and public access blocks for S3 buckets',
+                        fileTypes: ['.tf']
                     }
                 ]
             },
@@ -722,9 +718,9 @@ export class GlobalComplianceControls {
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /tls|ssl|encrypted[_-]?transmission|secure[_-]?communication/i,
-                        message: 'FedRAMP SC-8: Verify encrypted transmission protocols',
-                        remediation: 'Use TLS/SSL for all data transmissions',
+                        pattern: /(ssl|tls)[_-]?(enforce|enabled?|required?)\s*=\s*(false|"false"|0|"0")|JDBC_ENFORCE_SSL\s*=\s*"false"/i,
+                        message: 'FedRAMP SC-8: SSL/TLS should be enforced',
+                        remediation: 'Enable SSL/TLS enforcement for all connections',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -745,9 +741,9 @@ export class GlobalComplianceControls {
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /key[_-]?rotation|key[_-]?generation|key[_-]?distribution/i,
-                        message: 'FedRAMP SC-12: Verify key lifecycle management',
-                        remediation: 'Implement key rotation and lifecycle management',
+                        pattern: /enable_key_rotation\s*=\s*(false|"false")|key_rotation_enabled\s*=\s*(false|"false")/i,
+                        message: 'FedRAMP SC-12: Key rotation should be enabled',
+                        remediation: 'Set enable_key_rotation = true for AWS KMS keys',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -768,9 +764,9 @@ export class GlobalComplianceControls {
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /aes|fips[_-]?approved|nist[_-]?approved|crypto[_-]?standards/i,
-                        message: 'FedRAMP SC-13: Verify FIPS-approved cryptographic standards',
-                        remediation: 'Use only FIPS-approved cryptographic algorithms',
+                        pattern: /(server_side_encryption|encryption)\s*=\s*["'](?!AES256|aws:kms|KMS|AES-256)[^"']+["']/i,
+                        message: 'FedRAMP SC-13: Use FIPS-approved encryption standards',
+                        remediation: 'Use AES256, AWS KMS, or other FIPS-approved encryption methods',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -795,6 +791,42 @@ export class GlobalComplianceControls {
                         message: 'FedRAMP SC-28: Verify storage encryption mechanisms',
                         remediation: 'Enable disk, database, and file system encryption',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    }
+                ]
+            },
+
+            // S3 BUCKET SECURITY CONTROLS
+            {
+                id: 'SC-S3',
+                title: 'S3 Bucket Security Configuration',
+                description: 'S3 buckets must have appropriate security configurations including encryption, access controls, and logging.',
+                family: 'SC',
+                standard: 'FedRAMP',
+                severity: 'error',
+                checks: [
+                    {
+                        pattern: /block_public_acls\s*=\s*(false|"false")|block_public_policy\s*=\s*(false|"false")|ignore_public_acls\s*=\s*(false|"false")|restrict_public_buckets\s*=\s*(false|"false")/i,
+                        message: 'FedRAMP SC-S3: S3 bucket public access should be blocked',
+                        remediation: 'Set all public access block settings to true for S3 buckets',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        pattern: /acl\s*=\s*["']public-read|acl\s*=\s*["']public-read-write|acl\s*=\s*["']authenticated-read/i,
+                        message: 'FedRAMP SC-S3: S3 bucket should not have public ACLs',
+                        remediation: 'Use private ACLs and IAM policies instead of public ACLs',
+                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
+                    },
+                    {
+                        pattern: /resource\s+"aws_s3_bucket"\s+"[^"]*"\s*{[^}]*}(?![\s\S]*resource\s+"aws_s3_bucket_server_side_encryption_configuration")/,
+                        message: 'FedRAMP SC-S3: S3 bucket should have encryption configuration',
+                        remediation: 'Add aws_s3_bucket_server_side_encryption_configuration resource',
+                        fileTypes: ['.tf']
+                    },
+                    {
+                        pattern: /resource\s+"aws_s3_bucket"\s+"[^"]*"\s*{[^}]*}(?![\s\S]*resource\s+"aws_s3_bucket_public_access_block")/,
+                        message: 'FedRAMP SC-S3: S3 bucket should have public access block',
+                        remediation: 'Add aws_s3_bucket_public_access_block resource',
+                        fileTypes: ['.tf']
                     }
                 ]
             },
@@ -855,15 +887,15 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /system[_-]?monitoring|security[_-]?monitoring|intrusion[_-]?detection/i,
-                        message: 'FedRAMP SI-4: Check for information system monitoring',
-                        remediation: 'Implement comprehensive information system monitoring',
+                        pattern: /monitoring\s*=\s*(false|"false"|disabled)|logging\s*=\s*(false|"false"|disabled)/i,
+                        message: 'FedRAMP SI-4: System monitoring should be enabled',
+                        remediation: 'Enable comprehensive information system monitoring and logging',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /siem|ids|ips|security[_-]?event[_-]?monitoring/i,
-                        message: 'FedRAMP SI-4: Verify security monitoring systems',
-                        remediation: 'Deploy SIEM, IDS/IPS, and security event monitoring',
+                        pattern: /cloudtrail.*enabled\s*=\s*(false|"false")|guardduty.*enabled\s*=\s*(false|"false")/i,
+                        message: 'FedRAMP SI-4: Security monitoring tools should be enabled',
+                        remediation: 'Enable CloudTrail, GuardDuty, and other security monitoring services',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
@@ -992,13 +1024,13 @@ export class GlobalComplianceControls {
                 severity: 'warning',
                 checks: [
                     {
-                        pattern: /anonymous[_-]?access|public[_-]?access|unauthenticated[_-]?access/i,
+                        pattern: /(?!.*(?:endpointPrefix|service-[^"]*\.json|"operations"))(anonymous[_-]?access|public[_-]?access|unauthenticated[_-]?access)/i,
                         message: 'FedRAMP AC-14: Review anonymous/public access permissions',
                         remediation: 'Document and justify any unauthenticated access',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /guest[_-]?user|anonymous[_-]?user|public[_-]?read/i,
+                        pattern: /(?!.*(?:endpointPrefix|service-[^"]*\.json|"operations"|"metadata"))(guest[_-]?user|anonymous[_-]?user|public[_-]?read)/i,
                         message: 'FedRAMP AC-14: Verify permitted actions without authentication',
                         remediation: 'Minimize and document unauthenticated access',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
@@ -1238,14 +1270,14 @@ export class GlobalComplianceControls {
                 severity: 'error',
                 checks: [
                     {
-                        pattern: /ntp|time[_-]?sync|time[_-]?server|timestamp/i,
-                        message: 'FedRAMP AU-8: Configure time synchronization and timestamps',
+                        pattern: /ntp[_-]?server|chrony|timesyncd|time[_-]?synchronization(?!.*endpointPrefix)/i,
+                        message: 'FedRAMP AU-8: Configure time synchronization services',
                         remediation: 'Implement NTP time synchronization for accurate timestamps',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     },
                     {
-                        pattern: /utc|gmt|timezone|time[_-]?zone/i,
-                        message: 'FedRAMP AU-8: Verify time zone configuration for audit records',
+                        pattern: /timestamp[_-]?format|audit[_-]?timestamp|log[_-]?timestamp(?!.*endpointPrefix|.*service-\d\.json)/i,
+                        message: 'FedRAMP AU-8: Configure proper timestamp formats for audit records',
                         remediation: 'Use coordinated universal time (UTC) for audit timestamps',
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
@@ -3265,487 +3297,6 @@ export class GlobalComplianceControls {
                         fileTypes: ['.tf', '.yaml', '.yml', '.json']
                     }
                 ]
-            }
-        ];
-    }
-
-    private getCISAWSControls(): ComplianceControl[] {
-        return [
-            // CIS AWS Benchmark v1.4 Controls
-            {
-                id: 'CIS-1.1',
-                title: 'Maintain current contact details',
-                description: 'Ensure contact details are current for AWS account',
-                family: 'Identity and Access Management',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level1],
-                severity: 'warning',
-                checks: [
-                    {
-                        pattern: /contact[_-]?details|account[_-]?contact|billing[_-]?contact/i,
-                        message: 'CIS 1.1: Ensure account contact details are maintained',
-                        remediation: 'Regularly review and update AWS account contact information',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['account-management', 'contacts']
-            },
-            {
-                id: 'CIS-1.2',
-                title: 'Ensure security contact information is provided',
-                description: 'Security contact information should be provided for the AWS account',
-                family: 'Identity and Access Management',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level1],
-                severity: 'warning',
-                checks: [
-                    {
-                        pattern: /security[_-]?contact|alternate[_-]?contact/i,
-                        message: 'CIS 1.2: Provide security contact information',
-                        remediation: 'Configure security contact details in AWS account settings',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['security-contacts', 'incident-response']
-            },
-            {
-                id: 'CIS-1.3',
-                title: 'Ensure security questions are registered',
-                description: 'Security questions should be registered in the AWS account',
-                family: 'Identity and Access Management',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level1],
-                severity: 'warning',
-                checks: [
-                    {
-                        pattern: /security[_-]?questions|challenge[_-]?questions/i,
-                        message: 'CIS 1.3: Register security questions for account recovery',
-                        remediation: 'Configure security questions in AWS account settings',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['account-recovery', 'security-questions']
-            },
-            {
-                id: 'CIS-1.4',
-                title: 'Ensure no root access keys exist',
-                description: 'Root access keys should not exist',
-                family: 'Identity and Access Management',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level1],
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /root[_-]?access[_-]?key|AKIA[A-Z0-9]{16}/,
-                        message: 'CIS 1.4: Remove root access keys',
-                        remediation: 'Delete root user access keys and use IAM users instead',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json', '.env']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['root-access', 'access-keys']
-            },
-            {
-                id: 'CIS-1.5',
-                title: 'Ensure MFA is enabled for root account',
-                description: 'Multi-factor authentication should be enabled for the root account',
-                family: 'Identity and Access Management',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level1],
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /mfa[_-]?enabled|multi[_-]?factor|two[_-]?factor/i,
-                        message: 'CIS 1.5: Enable MFA for root account',
-                        remediation: 'Configure multi-factor authentication for the root account',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['mfa', 'root-account', 'authentication']
-            },
-            {
-                id: 'CIS-2.1',
-                title: 'Ensure CloudTrail is enabled',
-                description: 'AWS CloudTrail should be enabled in all regions',
-                family: 'Logging',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level1],
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /aws_cloudtrail|cloudtrail[_-]?enabled/i,
-                        message: 'CIS 2.1: Ensure CloudTrail is enabled in all regions',
-                        remediation: 'Enable AWS CloudTrail with multi-region configuration',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['cloudtrail', 'logging', 'auditing']
-            },
-            {
-                id: 'CIS-2.2',
-                title: 'Ensure CloudTrail log file validation is enabled',
-                description: 'CloudTrail log file validation should be enabled',
-                family: 'Logging',
-                standard: 'CIS-AWS-Benchmark-v1.4',
-                level: [CISLevel.Level2],
-                severity: 'warning',
-                checks: [
-                    {
-                        pattern: /enable_log_file_validation\s*=\s*true/i,
-                        message: 'CIS 2.2: Enable CloudTrail log file validation',
-                        remediation: 'Set enable_log_file_validation = true for CloudTrail',
-                        fileTypes: ['.tf']
-                    }
-                ],
-                references: ['CIS AWS Benchmark v1.4.0'],
-                tags: ['cloudtrail', 'log-integrity', 'validation']
-            }
-        ];
-    }
-
-    private getNIST800171Controls(): ComplianceControl[] {
-        return [
-            // NIST SP 800-171 r2 Controls
-            {
-                id: 'NIST-171-3.1.1',
-                title: 'Limit system access to authorized users',
-                description: 'Limit information system access to authorized users, processes acting on behalf of authorized users, or devices',
-                family: 'Access Control',
-                standard: 'NIST-SP-800-171-r2',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /unauthorized[_-]?access|open[_-]?access|public[_-]?access/i,
-                        message: 'NIST 800-171 3.1.1: Limit system access to authorized users only',
-                        remediation: 'Implement proper access controls and remove unauthorized access',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-171 Rev. 2'],
-                tags: ['access-control', 'authorization']
-            },
-            {
-                id: 'NIST-171-3.1.2',
-                title: 'Limit system access to authorized transactions',
-                description: 'Limit information system access to the types of transactions and functions that authorized users are permitted to execute',
-                family: 'Access Control',
-                standard: 'NIST-SP-800-171-r2',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /transaction[_-]?control|function[_-]?restriction|privilege[_-]?separation/i,
-                        message: 'NIST 800-171 3.1.2: Limit access to authorized transactions only',
-                        remediation: 'Implement transaction-level access controls',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-171 Rev. 2'],
-                tags: ['transaction-control', 'least-privilege']
-            },
-            {
-                id: 'NIST-171-3.3.1',
-                title: 'Create and retain audit logs',
-                description: 'Create and retain information system audit records to the extent needed to enable the monitoring, analysis, investigation, and reporting of unlawful, unauthorized, or inappropriate information system activity',
-                family: 'Audit and Accountability',
-                standard: 'NIST-SP-800-171-r2',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /audit[_-]?log|logging[_-]?enabled|log[_-]?retention/i,
-                        message: 'NIST 800-171 3.3.1: Ensure comprehensive audit logging',
-                        remediation: 'Enable and configure audit logging with appropriate retention',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-171 Rev. 2'],
-                tags: ['audit-logging', 'monitoring']
-            },
-            {
-                id: 'NIST-171-3.4.1',
-                title: 'Establish configuration baselines',
-                description: 'Establish and maintain baseline configurations and inventories of organizational information systems',
-                family: 'Configuration Management',
-                standard: 'NIST-SP-800-171-r2',
-                severity: 'warning',
-                checks: [
-                    {
-                        pattern: /baseline[_-]?configuration|configuration[_-]?management|system[_-]?inventory/i,
-                        message: 'NIST 800-171 3.4.1: Maintain configuration baselines',
-                        remediation: 'Document and maintain system configuration baselines',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-171 Rev. 2'],
-                tags: ['configuration-management', 'baselines']
-            },
-            {
-                id: 'NIST-171-3.13.1',
-                title: 'Monitor and control communications',
-                description: 'Monitor, control, and protect organizational communications at the external boundaries and key internal boundaries of the information systems',
-                family: 'System and Communications Protection',
-                standard: 'NIST-SP-800-171-r2',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /network[_-]?monitoring|traffic[_-]?control|boundary[_-]?protection/i,
-                        message: 'NIST 800-171 3.13.1: Monitor and control communications at boundaries',
-                        remediation: 'Implement network monitoring and boundary protection controls',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-171 Rev. 2'],
-                tags: ['network-security', 'boundary-protection']
-            }
-        ];
-    }
-
-    private getNIST80053Controls(): ComplianceControl[] {
-        return [
-            // NIST SP 800-53 r5 Controls
-            {
-                id: 'NIST-53-AC-1',
-                title: 'Access Control Policy and Procedures',
-                description: 'The organization develops, documents, and disseminates access control policy and procedures',
-                family: 'Access Control',
-                standard: 'NIST-SP-800-53-r5',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /access[_-]?control[_-]?policy|ac[_-]?policy|access[_-]?procedures/i,
-                        message: 'NIST 800-53 AC-1: Document access control policies and procedures',
-                        remediation: 'Develop and maintain formal access control policies',
-                        fileTypes: ['.md', '.txt', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-53 Rev. 5'],
-                tags: ['policy', 'procedures', 'access-control']
-            },
-            {
-                id: 'NIST-53-AC-2',
-                title: 'Account Management',
-                description: 'The organization manages information system accounts including establishing, activating, modifying, disabling, and removing accounts',
-                family: 'Access Control',
-                standard: 'NIST-SP-800-53-r5',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /account[_-]?management|user[_-]?lifecycle|account[_-]?provisioning/i,
-                        message: 'NIST 800-53 AC-2: Implement proper account management',
-                        remediation: 'Establish formal account management procedures',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-53 Rev. 5'],
-                tags: ['account-management', 'user-lifecycle']
-            },
-            {
-                id: 'NIST-53-AU-1',
-                title: 'Audit and Accountability Policy and Procedures',
-                description: 'The organization develops, documents, and disseminates audit and accountability policy and procedures',
-                family: 'Audit and Accountability',
-                standard: 'NIST-SP-800-53-r5',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /audit[_-]?policy|accountability[_-]?policy|au[_-]?policy/i,
-                        message: 'NIST 800-53 AU-1: Document audit and accountability policies',
-                        remediation: 'Develop comprehensive audit and accountability policies',
-                        fileTypes: ['.md', '.txt', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-53 Rev. 5'],
-                tags: ['audit-policy', 'accountability']
-            },
-            {
-                id: 'NIST-53-AU-2',
-                title: 'Auditable Events',
-                description: 'The organization determines that the information system is capable of auditing events and coordinates the security audit function with other organizational entities',
-                family: 'Audit and Accountability',
-                standard: 'NIST-SP-800-53-r5',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /auditable[_-]?events|audit[_-]?capability|security[_-]?audit/i,
-                        message: 'NIST 800-53 AU-2: Define and implement auditable events',
-                        remediation: 'Configure comprehensive audit event logging',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-53 Rev. 5'],
-                tags: ['audit-events', 'logging']
-            },
-            {
-                id: 'NIST-53-SC-1',
-                title: 'System and Communications Protection Policy and Procedures',
-                description: 'The organization develops, documents, and disseminates system and communications protection policy and procedures',
-                family: 'System and Communications Protection',
-                standard: 'NIST-SP-800-53-r5',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /communications[_-]?protection|sc[_-]?policy|system[_-]?protection[_-]?policy/i,
-                        message: 'NIST 800-53 SC-1: Document system and communications protection policies',
-                        remediation: 'Develop system and communications protection policies',
-                        fileTypes: ['.md', '.txt', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['NIST SP 800-53 Rev. 5'],
-                tags: ['system-protection', 'communications-protection']
-            }
-        ];
-    }
-
-    private getPCIDSSControls(): ComplianceControl[] {
-        return [
-            // PCI DSS v3.2.1 Controls
-            {
-                id: 'PCI-1.1',
-                title: 'Firewall and Router Configuration Standards',
-                description: 'Establish and implement firewall and router configuration standards',
-                family: 'Build and Maintain a Secure Network',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /firewall[_-]?configuration|router[_-]?configuration|network[_-]?security[_-]?standard/i,
-                        message: 'PCI DSS 1.1: Implement firewall and router configuration standards',
-                        remediation: 'Establish formal firewall and router configuration standards',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['firewall', 'network-security', 'configuration-standards']
-            },
-            {
-                id: 'PCI-1.2',
-                title: 'Firewall Configuration for Cardholder Data',
-                description: 'Build firewall and router configurations that restrict connections between untrusted networks and any system components in the cardholder data environment',
-                family: 'Build and Maintain a Secure Network',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /cardholder[_-]?data|card[_-]?data[_-]?environment|cde/i,
-                        message: 'PCI DSS 1.2: Restrict firewall access to cardholder data environment',
-                        remediation: 'Configure firewalls to protect cardholder data environment',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['cardholder-data', 'network-segmentation']
-            },
-            {
-                id: 'PCI-2.1',
-                title: 'Change Default Passwords',
-                description: 'Always change vendor-supplied defaults and remove or disable unnecessary default accounts',
-                family: 'Build and Maintain a Secure Network',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /default[_-]?password|vendor[_-]?default|admin\/admin|root\/root/i,
-                        message: 'PCI DSS 2.1: Change vendor-supplied default passwords',
-                        remediation: 'Change all default passwords and remove unnecessary default accounts',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json', '.env']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['default-passwords', 'account-security']
-            },
-            {
-                id: 'PCI-3.1',
-                title: 'Minimize Cardholder Data Storage',
-                description: 'Keep cardholder data storage to a minimum by implementing data retention and disposal policies',
-                family: 'Protect Stored Cardholder Data',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /data[_-]?retention|cardholder[_-]?data[_-]?storage|data[_-]?disposal/i,
-                        message: 'PCI DSS 3.1: Implement data retention and disposal policies',
-                        remediation: 'Minimize cardholder data storage and implement proper disposal',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['data-retention', 'data-disposal']
-            },
-            {
-                id: 'PCI-3.4',
-                title: 'Protect Cardholder Data with Cryptography',
-                description: 'Render account numbers unreadable anywhere they are stored using strong cryptography',
-                family: 'Protect Stored Cardholder Data',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /encryption|cryptography|card[_-]?encryption|data[_-]?protection/i,
-                        message: 'PCI DSS 3.4: Protect cardholder data with strong cryptography',
-                        remediation: 'Implement strong encryption for cardholder data storage',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['encryption', 'cryptography', 'data-protection']
-            },
-            {
-                id: 'PCI-4.1',
-                title: 'Encrypt Cardholder Data in Transit',
-                description: 'Use strong cryptography and security protocols to safeguard sensitive cardholder data during transmission over open, public networks',
-                family: 'Protect Cardholder Data in Transit',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /transmission[_-]?encryption|transit[_-]?encryption|tls|ssl/i,
-                        message: 'PCI DSS 4.1: Encrypt cardholder data during transmission',
-                        remediation: 'Implement strong encryption for data in transit',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['transmission-security', 'encryption-in-transit']
-            },
-            {
-                id: 'PCI-8.1',
-                title: 'User Identification for System Access',
-                description: 'Define and implement policies and procedures to ensure proper user identification management',
-                family: 'Implement Strong Access Control Measures',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /user[_-]?identification|access[_-]?control[_-]?policy|identity[_-]?management/i,
-                        message: 'PCI DSS 8.1: Implement proper user identification management',
-                        remediation: 'Define and implement user identification policies',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['user-identification', 'access-control']
-            },
-            {
-                id: 'PCI-10.1',
-                title: 'Audit Trail for System Access',
-                description: 'Implement audit trails to link all access to system components to each individual user',
-                family: 'Regularly Monitor and Test Networks',
-                standard: 'PCI-DSS-v3.2.1',
-                severity: 'error',
-                checks: [
-                    {
-                        pattern: /audit[_-]?trail|access[_-]?logging|user[_-]?activity[_-]?monitoring/i,
-                        message: 'PCI DSS 10.1: Implement comprehensive audit trails',
-                        remediation: 'Enable detailed audit logging for all system access',
-                        fileTypes: ['.tf', '.yaml', '.yml', '.json']
-                    }
-                ],
-                references: ['PCI DSS v3.2.1'],
-                tags: ['audit-trail', 'access-monitoring']
             }
         ];
     }
